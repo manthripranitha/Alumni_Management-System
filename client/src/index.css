@@ -11,3 +11,204 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Custom Styles for Premium Look */
+.app-background {
+  background-color: hsl(54, 100%, 98%);
+  background-image: linear-gradient(to bottom, hsl(54, 100%, 98%), hsl(54, 100%, 92%));
+  min-height: 100vh;
+}
+
+/* Cloud Animations */
+.cloud-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.8;
+  filter: blur(3px);
+  animation: float linear infinite;
+}
+
+.cloud-1 {
+  width: 100px;
+  height: 60px;
+  top: 30px;
+  left: 10%;
+  animation-duration: 120s;
+}
+
+.cloud-2 {
+  width: 140px;
+  height: 70px;
+  top: 50px;
+  left: 30%;
+  animation-duration: 160s;
+}
+
+.cloud-3 {
+  width: 120px;
+  height: 65px;
+  top: 20px;
+  left: 60%;
+  animation-duration: 140s;
+}
+
+.cloud-4 {
+  width: 110px;
+  height: 55px;
+  top: 70px;
+  left: 80%;
+  animation-duration: 180s;
+}
+
+.raindrop {
+  position: absolute;
+  width: 2px;
+  height: 15px;
+  background: rgba(174, 194, 224, 0.5);
+  animation: rain linear infinite;
+}
+
+@keyframes float {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px));
+  }
+}
+
+@keyframes rain {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(100px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Flying birds */
+.bird {
+  position: absolute;
+  width: 15px;
+  height: 8px;
+  background: transparent;
+  transform: scale(0.8);
+}
+
+.bird:before, .bird:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 4px;
+  border-radius: 5px;
+  background: #333;
+  transform-origin: 0% 0%;
+  animation: wings 0.8s infinite;
+}
+
+.bird:before {
+  left: 0;
+  transform: rotate(30deg);
+}
+
+.bird:after {
+  left: 5px;
+  transform: rotate(-30deg);
+}
+
+@keyframes wings {
+  50% {
+    transform: rotate(-30deg);
+  }
+}
+
+.bird-1 {
+  top: 40px;
+  left: 20%;
+  animation: fly-1 30s linear infinite;
+}
+
+.bird-2 {
+  top: 70px;
+  left: 40%;
+  animation: fly-2 35s linear infinite;
+}
+
+.bird-3 {
+  top: 30px;
+  left: 70%;
+  animation: fly-3 40s linear infinite;
+}
+
+@keyframes fly-1 {
+  0% {
+    transform: translateX(-100px) translateY(10px) scale(0.8);
+  }
+  100% {
+    transform: translateX(calc(100vw + 100px)) translateY(-20px) scale(0.8);
+  }
+}
+
+@keyframes fly-2 {
+  0% {
+    transform: translateX(-200px) translateY(20px) scale(0.9);
+  }
+  100% {
+    transform: translateX(calc(100vw + 200px)) translateY(-40px) scale(0.9);
+  }
+}
+
+@keyframes fly-3 {
+  0% {
+    transform: translateX(-150px) translateY(-10px) scale(0.7);
+  }
+  100% {
+    transform: translateX(calc(100vw + 150px)) translateY(30px) scale(0.7);
+  }
+}
+
+/* Peacock feather design for sidebar */
+.peacock-feather {
+  position: absolute;
+  width: 40px;
+  height: 120px;
+  background-image: radial-gradient(circle at 50% 30%, 
+    hsl(215, 70%, 70%), 
+    hsl(165, 70%, 50%), 
+    hsl(120, 70%, 45%), 
+    hsl(50, 100%, 60%), 
+    hsl(30, 100%, 60%));
+  border-radius: 50% 50% 40% 40%;
+  opacity: 0.2;
+  transform: rotate(15deg);
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.peacock-feather::before {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, 
+    hsl(215, 80%, 40%),
+    hsl(180, 80%, 30%));
+  opacity: 0.8;
+}

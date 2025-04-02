@@ -23,6 +23,33 @@ import AdminDocuments from "@/pages/admin/admin-documents";
 import TestAuth from "@/pages/test-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
+import { CloudsAndBirds } from "./components/animations/CloudsAndBirds";
+import { PeacockFeather } from "./components/animations/PeacockFeather";
+
+// Wraps the application with decorative elements and theme
+function ThemeWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="app-background min-h-screen">
+      {/* Only show clouds and decorations on the homepage */}
+      <Route path="/">
+        {(params) => 
+          params ? (
+            <div className="relative">
+              <CloudsAndBirds />
+              {/* Decorative peacock feathers on sides */}
+              <PeacockFeather position="left" top={250} />
+              <PeacockFeather position="right" top={350} />
+              <PeacockFeather position="left" top={500} />
+              <PeacockFeather position="right" top={600} />
+            </div>
+          ) : null
+        }
+      </Route>
+      
+      {children}
+    </div>
+  );
+}
 
 function Router() {
   return (
@@ -60,7 +87,9 @@ function Router() {
 function App() {
   return (
     <AuthProvider>
-      <Router />
+      <ThemeWrapper>
+        <Router />
+      </ThemeWrapper>
       <Toaster />
     </AuthProvider>
   );
