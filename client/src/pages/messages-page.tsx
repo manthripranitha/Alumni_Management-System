@@ -123,7 +123,7 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
   // Handle form submission
   const onSubmit = (values: MessageFormValues) => {
     if (!selectedUserId || !user) return;
-    
+
     sendMessageMutation.mutate({
       senderId: user.id,
       receiverId: selectedUserId,
@@ -146,38 +146,38 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
   // Group users with conversations
   const conversationPartners = useMemo(() => {
     if (!userMessages || !users || !user) return [];
-    
+
     // Get unique user IDs from conversations
     const partnerIds = new Set<number>();
     userMessages.forEach(msg => {
       if (msg.senderId !== user.id) partnerIds.add(msg.senderId);
       if (msg.receiverId !== user.id) partnerIds.add(msg.receiverId);
     });
-    
+
     // Create conversation summary for each partner
     return Array.from(partnerIds).map(partnerId => {
       const partner = users.find(u => u.id === partnerId);
       if (!partner) return null;
-      
+
       // Get messages with this partner
       const messagesWithPartner = userMessages.filter(
         msg => (msg.senderId === partnerId && msg.receiverId === user.id) || 
               (msg.senderId === user.id && msg.receiverId === partnerId)
       );
-      
+
       // Sort by date
       messagesWithPartner.sort((a, b) => 
         new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
       );
-      
+
       // Get last message
       const lastMessage = messagesWithPartner[messagesWithPartner.length - 1];
-      
+
       // Count unread messages
       const unreadCount = messagesWithPartner.filter(
         msg => msg.senderId === partnerId && !msg.isRead
       ).length;
-      
+
       return {
         partner,
         lastMessage,
@@ -194,10 +194,10 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
   // Filter partners by search query
   const filteredPartners = conversationPartners.filter(partnerData => {
     if (!searchQuery || !partnerData) return true;
-    
+
     const query = searchQuery.toLowerCase();
     const partner = partnerData.partner;
-    
+
     const matchesSearch = !query || (
       partner.firstName.toLowerCase().includes(query) ||
       partner.lastName.toLowerCase().includes(query) ||
@@ -216,13 +216,30 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
     const date = new Date(timestamp);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     if (isToday) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
   };
+
+  const showToastNotification = (message: Message) => {
+    // Show toast notification for new message if not from current user
+    if (message.senderId !== user?.id) {
+      toast({
+        title: `New message from ${getPartnerDetails(message.senderId)?.firstName}`,
+        description: message.content.substring(0, 50) + (message.content.length > 50 ? '...' : ''),
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (conversation) {
+      conversation.forEach(showToastNotification);
+    }
+  }, [conversation]);
+
 
   if (loadingUsers || loadingMessages) {
     return (
@@ -235,7 +252,7 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Messages</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
         {/* Contacts Panel */}
         <Card className="md:col-span-1 overflow-hidden flex flex-col">
@@ -277,7 +294,7 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
                   {filteredPartners.map((partnerData) => {
                     if (!partnerData) return null;
                     const { partner, lastMessage, unreadCount } = partnerData;
-                    
+
                     return (
                       <div 
                         key={partner.id}
@@ -327,7 +344,7 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
             </p>
           </CardFooter>
         </Card>
-        
+
         {/* Conversation Panel */}
         <Card className="md:col-span-2 lg:col-span-3 overflow-hidden flex flex-col">
           {!selectedUserId ? (
@@ -374,9 +391,9 @@ const [departmentFilter, setDepartmentFilter] = useState<string>("");
                 ) : (
                   <ScrollArea className="h-[calc(100vh-22rem)]">
                     <div className="space-y-4">
-                      {conversation.map((message) => {
+                      {conversation.slice(0).reverse().map((message) => { // Reverse the array to show latest messages first
                         const isSentByMe = message.senderId === user?.id;
-                        
+
                         return (
                           <div 
                             key={message.id}
