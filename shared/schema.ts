@@ -136,12 +136,16 @@ export const discussions = pgTable("discussions", {
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   isLocked: boolean("is_locked").notNull().default(false),
+  lastActivityAt: timestamp("last_activity_at").notNull().defaultNow(),
+  participantIds: text("participant_ids").array().default([]).notNull(),
 });
 
 export const insertDiscussionSchema = createInsertSchema(discussions).omit({
   id: true,
   createdAt: true,
   isLocked: true,
+  lastActivityAt: true,
+  participantIds: true,
 });
 
 // Forum Replies
@@ -151,11 +155,43 @@ export const replies = pgTable("replies", {
   content: text("content").notNull(),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  isRead: boolean("is_read").notNull().default(false),
+  reactions: json("reactions").default({}).notNull(),
 });
 
 export const insertReplySchema = createInsertSchema(replies).omit({
   id: true,
   createdAt: true,
+  isRead: true,
+  reactions: true,
+});
+
+// Reply Read Status
+export const replyReadStatus = pgTable("reply_read_status", {
+  id: serial("id").primaryKey(),
+  replyId: integer("reply_id").notNull(),
+  userId: integer("user_id").notNull(),
+  readAt: timestamp("read_at").notNull().defaultNow(),
+});
+
+export const insertReplyReadStatusSchema = createInsertSchema(replyReadStatus).omit({
+  id: true,
+  readAt: true,
+});
+
+// Discussion Participants
+export const discussionParticipants = pgTable("discussion_participants", {
+  id: serial("id").primaryKey(),
+  discussionId: integer("discussion_id").notNull(),
+  userId: integer("user_id").notNull(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
+export const insertDiscussionParticipantSchema = createInsertSchema(discussionParticipants).omit({
+  id: true,
+  lastSeenAt: true,
+  joinedAt: true,
 });
 
 // Document Upload System
@@ -221,6 +257,12 @@ export type InsertDiscussion = z.infer<typeof insertDiscussionSchema>;
 
 export type Reply = typeof replies.$inferSelect;
 export type InsertReply = z.infer<typeof insertReplySchema>;
+
+export type ReplyReadStatus = typeof replyReadStatus.$inferSelect;
+export type InsertReplyReadStatus = z.infer<typeof insertReplyReadStatusSchema>;
+
+export type DiscussionParticipant = typeof discussionParticipants.$inferSelect;
+export type InsertDiscussionParticipant = z.infer<typeof insertDiscussionParticipantSchema>;
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;

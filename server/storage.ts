@@ -8,7 +8,9 @@ import {
   Discussion, InsertDiscussion,
   Reply, InsertReply,
   Document, InsertDocument,
-  Message, InsertMessage
+  Message, InsertMessage,
+  DiscussionParticipant, InsertDiscussionParticipant,
+  ReplyReadStatus, InsertReplyReadStatus
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -68,12 +70,25 @@ export interface IStorage {
   updateDiscussion(id: number, discussion: Partial<Discussion>): Promise<Discussion | undefined>;
   deleteDiscussion(id: number): Promise<boolean>;
   
+  // Discussion Participant operations
+  getDiscussionParticipant(discussionId: number, userId: number): Promise<DiscussionParticipant | undefined>;
+  getDiscussionParticipants(discussionId: number): Promise<DiscussionParticipant[]>;
+  addDiscussionParticipant(participant: InsertDiscussionParticipant): Promise<DiscussionParticipant>;
+  updateLastSeen(discussionId: number, userId: number): Promise<DiscussionParticipant | undefined>;
+  
   // Reply operations
   getReply(id: number): Promise<Reply | undefined>;
   getRepliesByDiscussion(discussionId: number): Promise<Reply[]>;
   createReply(reply: InsertReply): Promise<Reply>;
   updateReply(id: number, reply: Partial<Reply>): Promise<Reply | undefined>;
   deleteReply(id: number): Promise<boolean>;
+  addReaction(replyId: number, userId: number, reaction: string): Promise<Reply | undefined>;
+  removeReaction(replyId: number, userId: number, reaction: string): Promise<Reply | undefined>;
+  
+  // Reply Read Status operations
+  getReplyReadStatus(replyId: number, userId: number): Promise<ReplyReadStatus | undefined>;
+  markReplyAsRead(replyId: number, userId: number): Promise<ReplyReadStatus>;
+  getUnreadRepliesCount(discussionId: number, userId: number): Promise<number>;
   
   // Document operations
   getDocument(id: number): Promise<Document | undefined>;
@@ -122,6 +137,11 @@ export class MemStorage implements IStorage {
   private currentDocumentId: number;
   private currentMessageId: number;
 
+  private discussionParticipants: Map<number, DiscussionParticipant>;
+  private replyReadStatus: Map<number, ReplyReadStatus>;
+  private currentDiscussionParticipantId: number;
+  private currentReplyReadStatusId: number;
+
   constructor() {
     this.users = new Map();
     this.events = new Map();
@@ -133,6 +153,8 @@ export class MemStorage implements IStorage {
     this.replies = new Map();
     this.documents = new Map();
     this.messages = new Map();
+    this.discussionParticipants = new Map();
+    this.replyReadStatus = new Map();
     
     this.currentUserId = 1;
     this.currentEventId = 1;
@@ -144,6 +166,8 @@ export class MemStorage implements IStorage {
     this.currentReplyId = 1;
     this.currentDocumentId = 1;
     this.currentMessageId = 1;
+    this.currentDiscussionParticipantId = 1;
+    this.currentReplyReadStatusId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // Prune expired entries every 24h
@@ -463,14 +487,90 @@ export class MemStorage implements IStorage {
   
   async createDiscussion(insertDiscussion: InsertDiscussion): Promise<Discussion> {
     const id = this.currentDiscussionId++;
-    const discussion: Discussion = { 
-      ...insertDiscussion, 
-      id, 
-      createdAt: new Date(),
-      isLocked: false 
-    };
+    const now = new Date();
+    
+    // Create the discussion with required fields
+    const discussion = {
+      id,
+      title: insertDiscussion.title,
+      content: insertDiscussion.content,
+      createdBy: insertDiscussion.createdBy,
+      createdAt: now,
+      lastActivityAt: now,
+      participantIds: [insertDiscussion.createdBy.toString()],
+      isLocked: false
+    } as Discussion;
+    
     this.discussions.set(id, discussion);
+    
+    // Add the creator as a participant
+    await this.addDiscussionParticipant({
+      discussionId: id,
+      userId: insertDiscussion.createdBy
+    });
+    
     return discussion;
+  }
+  
+  // Discussion Participant operations
+  async getDiscussionParticipant(discussionId: number, userId: number): Promise<DiscussionParticipant | undefined> {
+    return Array.from(this.discussionParticipants.values()).find(
+      (participant) => participant.discussionId === discussionId && participant.userId === userId
+    );
+  }
+  
+  async getDiscussionParticipants(discussionId: number): Promise<DiscussionParticipant[]> {
+    return Array.from(this.discussionParticipants.values()).filter(
+      (participant) => participant.discussionId === discussionId
+    );
+  }
+  
+  async addDiscussionParticipant(participant: InsertDiscussionParticipant): Promise<DiscussionParticipant> {
+    // Check if already a participant
+    const existingParticipant = await this.getDiscussionParticipant(
+      participant.discussionId, 
+      participant.userId
+    );
+    
+    if (existingParticipant) {
+      return this.updateLastSeen(participant.discussionId, participant.userId) as Promise<DiscussionParticipant>;
+    }
+    
+    const id = this.currentDiscussionParticipantId++;
+    const now = new Date();
+    const newParticipant: DiscussionParticipant = {
+      ...participant,
+      id,
+      lastSeenAt: now,
+      joinedAt: now
+    };
+    
+    this.discussionParticipants.set(id, newParticipant);
+    
+    // Update the discussion's participant list
+    const discussion = await this.getDiscussion(participant.discussionId);
+    if (discussion) {
+      const participantIds = [...discussion.participantIds];
+      if (!participantIds.includes(participant.userId.toString())) {
+        participantIds.push(participant.userId.toString());
+        await this.updateDiscussion(discussion.id, { participantIds });
+      }
+    }
+    
+    return newParticipant;
+  }
+  
+  async updateLastSeen(discussionId: number, userId: number): Promise<DiscussionParticipant | undefined> {
+    const participant = await this.getDiscussionParticipant(discussionId, userId);
+    if (!participant) return undefined;
+    
+    const updatedParticipant = { 
+      ...participant, 
+      lastSeenAt: new Date() 
+    };
+    
+    this.discussionParticipants.set(participant.id, updatedParticipant);
+    return updatedParticipant;
   }
   
   async updateDiscussion(id: number, discussionData: Partial<Discussion>): Promise<Discussion | undefined> {
@@ -499,12 +599,29 @@ export class MemStorage implements IStorage {
   
   async createReply(insertReply: InsertReply): Promise<Reply> {
     const id = this.currentReplyId++;
+    const now = new Date();
+    // Initially create with empty reactions object and mark as unread
     const reply: Reply = { 
       ...insertReply, 
       id, 
-      createdAt: new Date() 
+      createdAt: now,
+      isRead: false,
+      reactions: {} as unknown as Record<string, number[]>
     };
     this.replies.set(id, reply);
+    
+    // Update the discussion's last activity time
+    const discussion = await this.getDiscussion(insertReply.discussionId);
+    if (discussion) {
+      await this.updateDiscussion(discussion.id, { lastActivityAt: now });
+    }
+    
+    // Add the user as a participant if they aren't already
+    await this.addDiscussionParticipant({
+      discussionId: insertReply.discussionId,
+      userId: insertReply.createdBy
+    });
+    
     return reply;
   }
   
@@ -519,6 +636,92 @@ export class MemStorage implements IStorage {
   
   async deleteReply(id: number): Promise<boolean> {
     return this.replies.delete(id);
+  }
+  
+  async addReaction(replyId: number, userId: number, reaction: string): Promise<Reply | undefined> {
+    const reply = await this.getReply(replyId);
+    if (!reply) return undefined;
+    
+    // Create a new reactions object using type assertion
+    const reactions = { ...(reply.reactions as Record<string, number[]>) };
+    
+    if (!reactions[reaction]) {
+      reactions[reaction] = [];
+    }
+    
+    if (!reactions[reaction].includes(userId)) {
+      reactions[reaction].push(userId);
+    }
+    
+    return this.updateReply(replyId, { reactions });
+  }
+  
+  async removeReaction(replyId: number, userId: number, reaction: string): Promise<Reply | undefined> {
+    const reply = await this.getReply(replyId);
+    if (!reply) return undefined;
+    
+    // Create a new reactions object using type assertion
+    const reactions = { ...(reply.reactions as Record<string, number[]>) };
+    
+    if (reactions[reaction]) {
+      reactions[reaction] = reactions[reaction].filter((id: number) => id !== userId);
+      if (reactions[reaction].length === 0) {
+        delete reactions[reaction];
+      }
+    }
+    
+    return this.updateReply(replyId, { reactions });
+  }
+  
+  // Reply Read Status operations
+  async getReplyReadStatus(replyId: number, userId: number): Promise<ReplyReadStatus | undefined> {
+    return Array.from(this.replyReadStatus.values()).find(
+      (status) => status.replyId === replyId && status.userId === userId
+    );
+  }
+  
+  async markReplyAsRead(replyId: number, userId: number): Promise<ReplyReadStatus> {
+    // Check if already marked as read
+    const existingStatus = await this.getReplyReadStatus(replyId, userId);
+    if (existingStatus) {
+      return existingStatus;
+    }
+    
+    const id = this.currentReplyReadStatusId++;
+    const status: ReplyReadStatus = {
+      id,
+      replyId,
+      userId,
+      readAt: new Date()
+    };
+    
+    this.replyReadStatus.set(id, status);
+    
+    // Mark the reply as read
+    const reply = await this.getReply(replyId);
+    if (reply) {
+      await this.updateReply(replyId, { isRead: true });
+    }
+    
+    return status;
+  }
+  
+  async getUnreadRepliesCount(discussionId: number, userId: number): Promise<number> {
+    const replies = await this.getRepliesByDiscussion(discussionId);
+    
+    // Filter replies not created by the user and that haven't been read by the user
+    const unreadReplies = replies.filter(reply => {
+      if (reply.createdBy === userId) return false; // Skip user's own replies
+      
+      // Check if there's a read status for this user
+      const hasReadStatus = Array.from(this.replyReadStatus.values()).some(
+        status => status.replyId === reply.id && status.userId === userId
+      );
+      
+      return !hasReadStatus; // Unread if no read status exists
+    });
+    
+    return unreadReplies.length;
   }
   
   // Document operations
