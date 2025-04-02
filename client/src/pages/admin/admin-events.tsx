@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, CalendarPlus, Calendar, CalendarX2 } from "lucide-react";
+import { Plus, Search, CalendarPlus, Calendar, CalendarX2, ArrowRightCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useLocation } from "wouter";
 
 export default function AdminEvents() {
   const { toast } = useToast();
@@ -22,6 +23,7 @@ export default function AdminEvents() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [, setLocation] = useLocation();
   
   // Fetch events
   const { data: events = [], isLoading } = useQuery<Event[]>({
@@ -29,6 +31,9 @@ export default function AdminEvents() {
   });
   
   // Create event mutation
+  // Track the newly created event for the "Add to Dashboard" button
+  const [newlyCreatedEvent, setNewlyCreatedEvent] = useState<Event | null>(null);
+  
   const createEventMutation = useMutation({
     mutationFn: async (eventData: InsertEvent) => {
       console.log("Creating event with data:", eventData);
@@ -40,10 +45,21 @@ export default function AdminEvents() {
     onSuccess: (data) => {
       console.log("Event created successfully:", data);
       setIsCreateDialogOpen(false);
+      setNewlyCreatedEvent(data); // Store the newly created event
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Event created",
-        description: "The event has been created successfully.",
+        description: "The event has been created successfully. You can now add it to the dashboard.",
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setLocation("/")}
+            className="mt-2 gap-1 flex items-center"
+          >
+            View on dashboard <ArrowRightCircle className="h-4 w-4 ml-1" />
+          </Button>
+        ),
       });
     },
     onError: (error: Error) => {
@@ -247,6 +263,36 @@ export default function AdminEvents() {
         </Dialog>
       </div>
       
+      {/* Show newly created event with "Add to Dashboard" button */}
+      {newlyCreatedEvent && (
+        <div className="mb-6 p-4 border border-green-200 bg-green-50 rounded-lg">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-green-800">Event Created: "{newlyCreatedEvent.title}"</h3>
+              <p className="text-sm text-green-600">The event has been successfully created.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => setLocation("/")} 
+                variant="outline" 
+                className="gap-2 border-green-300 hover:bg-green-100 text-green-800"
+              >
+                <ArrowRightCircle className="h-4 w-4" />
+                View on Dashboard
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setNewlyCreatedEvent(null)}
+                className="text-green-700 hover:bg-green-100"
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="upcoming" className="flex items-center gap-2">
