@@ -36,8 +36,20 @@ export const users = pgTable("users", {
   position: text("position"),
   workExperience: integer("work_experience"),
   industry: text("industry"),
+  
+  // Social Media & Professional Profiles
   linkedinProfile: text("linkedin_profile"),
+  instagramUsername: text("instagram_username"),
+  whatsappNumber: text("whatsapp_number"),
+  codechefProfile: text("codechef_profile"),
+  hackerRankProfile: text("hackerrank_profile"),
+  hackerEarthProfile: text("hackerearth_profile"),
+  leetcodeProfile: text("leetcode_profile"),
+  otherProfiles: text("other_profiles"),
+  
+  // Skills & Job Acquisition
   skills: text("skills"),
+  specialSkills: text("special_skills"), // Skills that helped them get a job easily
   
   // Admin status
   isAdmin: boolean("is_admin").notNull().default(false),
@@ -269,3 +281,37 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// University Contact & Social Media Information
+export const universityInfo = pgTable("university_info", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().default("Vignan University"),
+  address: text("address"),
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  
+  // Social Media Links
+  linkedinUrl: text("linkedin_url"),
+  facebookUrl: text("facebook_url"),
+  twitterUrl: text("twitter_url"),
+  instagramUrl: text("instagram_url"),
+  youtubeUrl: text("youtube_url"),
+  
+  // Additional Info
+  description: text("description"),
+  visionStatement: text("vision_statement"),
+  missionStatement: text("mission_statement"),
+  
+  // Last Updated
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedBy: integer("updated_by").notNull(),
+});
+
+export const insertUniversityInfoSchema = createInsertSchema(universityInfo).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type UniversityInfo = typeof universityInfo.$inferSelect;
+export type InsertUniversityInfo = z.infer<typeof insertUniversityInfoSchema>;

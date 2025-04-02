@@ -11,7 +11,8 @@ import {
   insertReplySchema,
   insertEventRegistrationSchema,
   insertDocumentSchema,
-  insertMessageSchema
+  insertMessageSchema,
+  insertUniversityInfoSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -874,6 +875,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
+  // User search routes
+  app.get("/api/users/search/:term", ensureAuthenticated, async (req, res) => {
+    try {
+      const searchTerm = req.params.term;
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        return res.status(400).json({ message: "Search term must be at least 2 characters" });
+      }
+      
+      const users = await storage.findUsersByName(searchTerm);
+      // Remove passwords before sending
+      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search users" });
+    }
+  });
+  
+  // University Info routes
+  app.get("/api/university-info", async (req, res) => {
+    try {
+      const universityInfo = await storage.getUniversityInfo();
+      if (!universityInfo) {
+        return res.status(404).json({ message: "University information not found" });
+      }
+      res.json(universityInfo);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch university information" });
+    }
+  });
+  
+  app.patch("/api/university-info", ensureAdmin, async (req, res) => {
+    try {
+      const updateData = req.body;
+      
+      // Ensure updatedBy is set to the current user
+      const updatedUniversityInfo = await storage.updateUniversityInfo(
+        updateData,
+        req.user.id
+      );
+      
+      if (!updatedUniversityInfo) {
+        return res.status(404).json({ message: "University information not found" });
+      }
+      
+      res.json(updatedUniversityInfo);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update university information" });
+    }
+  });
+
+  // University Info routes
+  app.get("/api/university-info", async (req, res) => {
+    try {
+      const info = await storage.getUniversityInfo();
+      res.json(info || {});
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch university information" });
+    }
+  });
+  
+  app.patch("/api/university-info", ensureAdmin, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const existingInfo = await storage.getUniversityInfo();
+      
+      // Check if we're updating or creating
+      if (existingInfo) {
+        // Update existing info
+        const updatedInfo = await storage.updateUniversityInfo(req.body, req.user.id);
+        res.json(updatedInfo);
+      } else {
+        // Create new info - validate first
+        try {
+          const validatedData = insertUniversityInfoSchema.parse({
+            ...req.body,
+            updatedBy: req.user.id
+          });
+          
+          // We're mocking this for now since our schema doesn't have a createUniversityInfo method
+          // In a real implementation, you'd create a new record
+          const updatedInfo = await storage.updateUniversityInfo(validatedData, req.user.id);
+          res.status(201).json(updatedInfo);
+        } catch (validationError) {
+          if (validationError instanceof z.ZodError) {
+            return res.status(400).json({ message: "Validation error", errors: validationError.errors });
+          }
+          throw validationError;
+        }
+      }
+    } catch (error) {
+      console.error("Error updating university info:", error);
+      res.status(500).json({ message: "Failed to update university information" });
+    }
+  });
+  
+  // Alumni Search routes
+  app.get("/api/users/search/:searchTerm", ensureAuthenticated, async (req, res) => {
+    try {
+      const searchTerm = req.params.searchTerm;
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        return res.status(400).json({ message: "Search term must be at least 2 characters" });
+      }
+      
+      const results = await storage.findUsersByName(searchTerm);
+      
+      // Remove sensitive data before sending
+      const sanitizedResults = results.map(({ password, ...user }) => user);
+      res.json(sanitizedResults);
+    } catch (error) {
+      console.error("Alumni search error:", error);
+      res.status(500).json({ message: "Failed to search alumni" });
     }
   });
 

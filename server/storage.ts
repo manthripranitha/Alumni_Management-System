@@ -10,7 +10,8 @@ import {
   Document, InsertDocument,
   Message, InsertMessage,
   DiscussionParticipant, InsertDiscussionParticipant,
-  ReplyReadStatus, InsertReplyReadStatus
+  ReplyReadStatus, InsertReplyReadStatus,
+  UniversityInfo, InsertUniversityInfo
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -24,9 +25,14 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
+  findUsersByName(searchTerm: string): Promise<User[]>; // Search users by name
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
+  
+  // University Info operations
+  getUniversityInfo(): Promise<UniversityInfo | undefined>;
+  updateUniversityInfo(info: Partial<UniversityInfo>, updatedBy: number): Promise<UniversityInfo | undefined>;
   
   // Event operations
   getEvent(id: number): Promise<Event | undefined>;
@@ -122,6 +128,7 @@ export class MemStorage implements IStorage {
   private replies: Map<number, Reply>;
   private documents: Map<number, Document>;
   private messages: Map<number, Message>;
+  private universityInfo: UniversityInfo | undefined;
   
   sessionStore: session.Store;
   
@@ -240,6 +247,26 @@ export class MemStorage implements IStorage {
       location: "Seminar Hall, Vignan University",
       createdBy: 1
     });
+    
+    // Initialize University Info
+    this.universityInfo = {
+      id: 1,
+      name: "Vignan University",
+      address: "Vadlamudi, Chebrolu Mandal, Guntur District, Andhra Pradesh 522213, India",
+      phone: "+91 863 234 5678",
+      email: "info@vignan.ac.in",
+      website: "https://www.vignan.ac.in",
+      linkedinUrl: "https://www.linkedin.com/school/vignan-university/",
+      facebookUrl: "https://www.facebook.com/vignanuniversity/",
+      twitterUrl: "https://twitter.com/vignanuniversity",
+      instagramUrl: "https://www.instagram.com/vignanuniversity/",
+      youtubeUrl: "https://www.youtube.com/c/vignanuniversity",
+      description: "Vignan University is a leading institution for engineering and technology education in Andhra Pradesh, India.",
+      visionStatement: "To evolve into a center of excellence in education and research, producing globally competitive and socially responsible professionals.",
+      missionStatement: "To provide quality education through innovation in teaching, research and industry engagement.",
+      updatedAt: new Date(),
+      updatedBy: 1
+    };
   }
 
   // User operations
@@ -289,8 +316,21 @@ export class MemStorage implements IStorage {
       position: insertUser.position ?? null,
       workExperience: insertUser.workExperience ?? null,
       industry: insertUser.industry ?? null,
+      
+      // Social Media & Professional Profiles
       linkedinProfile: insertUser.linkedinProfile ?? null,
+      instagramUsername: insertUser.instagramUsername ?? null,
+      whatsappNumber: insertUser.whatsappNumber ?? null,
+      codechefProfile: insertUser.codechefProfile ?? null,
+      hackerRankProfile: insertUser.hackerRankProfile ?? null,
+      hackerEarthProfile: insertUser.hackerEarthProfile ?? null,
+      leetcodeProfile: insertUser.leetcodeProfile ?? null,
+      otherProfiles: insertUser.otherProfiles ?? null,
+      
+      // Skills
       skills: insertUser.skills ?? null,
+      specialSkills: insertUser.specialSkills ?? null,
+      
       isProfileComplete: insertUser.isProfileComplete ?? false,
       isAdmin: insertUser.isAdmin !== undefined ? insertUser.isAdmin : false
     };
@@ -815,6 +855,35 @@ export class MemStorage implements IStorage {
   
   async deleteMessage(id: number): Promise<boolean> {
     return this.messages.delete(id);
+  }
+  
+  // User search operations
+  async findUsersByName(searchTerm: string): Promise<User[]> {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return Array.from(this.users.values()).filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return fullName.includes(lowerSearchTerm) || 
+             user.firstName.toLowerCase().includes(lowerSearchTerm) || 
+             user.lastName.toLowerCase().includes(lowerSearchTerm);
+    });
+  }
+  
+  // University Info operations
+  async getUniversityInfo(): Promise<UniversityInfo | undefined> {
+    return this.universityInfo;
+  }
+  
+  async updateUniversityInfo(info: Partial<UniversityInfo>, updatedBy: number): Promise<UniversityInfo | undefined> {
+    if (!this.universityInfo) return undefined;
+    
+    this.universityInfo = {
+      ...this.universityInfo,
+      ...info,
+      updatedAt: new Date(),
+      updatedBy
+    };
+    
+    return this.universityInfo;
   }
 }
 

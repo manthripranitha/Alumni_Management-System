@@ -11,6 +11,8 @@ import ForumPage from "@/pages/forum-page";
 import ProfilePage from "@/pages/profile-page";
 import DocumentsPage from "@/pages/documents-page";
 import MessagesPage from "@/pages/messages-page";
+import UniversityInfoPage from "@/pages/university-info-page";
+import AlumniDirectory from "@/pages/alumni-directory";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import AdminEvents from "@/pages/admin/admin-events";
 import AdminJobs from "@/pages/admin/admin-jobs";
@@ -21,7 +23,6 @@ import AdminDocuments from "@/pages/admin/admin-documents";
 import TestAuth from "@/pages/test-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
-import AlumniDirectory from "./pages/alumni-directory";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/documents" component={DocumentsPage} />
       <ProtectedRoute path="/messages" component={MessagesPage} />
       <ProtectedRoute path="/alumni" component={AlumniDirectory} />
+      <ProtectedRoute path="/university" component={UniversityInfoPage} />
 
       {/* Admin-only routes */}
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
