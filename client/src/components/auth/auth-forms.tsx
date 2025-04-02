@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // Login Form Schema
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"), 
+  username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -121,11 +121,11 @@ function LoginForm() {
       ? 'alumni' 
       : 'admin';
     
-    // For admin login, use the admin credentials
-    if (userType === 'admin') {
+    // For admin login, validate against hardcoded credentials
+    if (userType === 'admin' && values.username === 'admin' && values.password === 'admin123') {
       loginMutation.mutate({
         username: 'admin',
-        password: 'admin'
+        password: 'admin123'
       });
     } else {
       // For regular alumni login
