@@ -183,7 +183,7 @@ export class MemStorage implements IStorage {
     // Create a default admin user
     this.createUser({
       username: "admin",
-      password: "admin123", // This will be hashed in auth.ts
+      password: "admin123", // Using plain text password for default users
       email: "admin@vignan.ac.in",
       firstName: "Admin",
       lastName: "User",
@@ -200,7 +200,7 @@ export class MemStorage implements IStorage {
     // Create a default alumni user
     this.createUser({
       username: "alumni",
-      password: "alumni123", // This will be hashed in auth.ts
+      password: "alumni123", // Using plain text password for default users
       email: "alumni@example.com",
       firstName: "Alumni",
       lastName: "User",
