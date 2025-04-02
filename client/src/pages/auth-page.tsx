@@ -26,8 +26,8 @@ export default function AuthPage() {
         <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
           <div className="text-center">
             <img 
-              className="mx-auto h-16 w-auto" 
-              src="https://images.unsplash.com/photo-1599408984828-6ed89ca6e355?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8c2Nob29sLGVkdWNhdGlvbixsb2dvfHx8fHx8MTcxMjI2MzMxMA&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" 
+              className="mx-auto h-32 w-auto" 
+              src="/src/assets/vignan_logo.png"
               alt="Vignan University Logo" 
             />
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

@@ -220,7 +220,7 @@ export function Sidebar() {
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-primary-700">
-            <p className="text-xs text-center text-primary-200">
+            <p className="text-sm font-medium text-center text-primary-200 mt-4">
               Developed And Maintained By<br />Krishna Kant Kumar And Team
             </p>
           </div>
