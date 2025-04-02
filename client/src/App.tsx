@@ -5,6 +5,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EventsPage from "@/pages/events-page";
 import JobsPage from "@/pages/jobs-page";
+import JobDetailsPage from "@/pages/job-details-page";
 import GalleryPage from "@/pages/gallery-page";
 import ForumPage from "@/pages/forum-page";
 import ProfilePage from "@/pages/profile-page";
@@ -32,6 +33,7 @@ function Router() {
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/events" component={EventsPage} />
       <ProtectedRoute path="/jobs" component={JobsPage} />
+      <ProtectedRoute path="/jobs/:id" component={JobDetailsPage} />
       <ProtectedRoute path="/gallery" component={GalleryPage} />
       <ProtectedRoute path="/forum" component={ForumPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />

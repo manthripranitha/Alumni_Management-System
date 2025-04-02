@@ -29,7 +29,11 @@ export function JobCard({ job }: JobProps) {
       <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <CardTitle className="text-xl">{job.title}</CardTitle>
+            <Link href={`/jobs/${job.id}`}>
+              <CardTitle className="text-xl hover:text-primary hover:underline cursor-pointer">
+                {job.title}
+              </CardTitle>
+            </Link>
             <div className="flex items-center mt-1">
               <Building2 className="h-4 w-4 mr-1 text-gray-500" />
               <CardDescription>{job.company}</CardDescription>
@@ -53,8 +57,8 @@ export function JobCard({ job }: JobProps) {
       </CardContent>
       
       <CardFooter className="border-t pt-4 flex justify-between">
-        <Link href={`/jobs/${job.id}`}>
-          <a className="text-primary hover:text-primary-dark font-medium text-sm">View Details</a>
+        <Link href={`/jobs/${job.id}`} className="text-primary hover:text-primary-dark font-medium text-sm">
+          View Details
         </Link>
         
         <Button size="sm" variant="outline" className="gap-1">

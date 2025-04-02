@@ -47,10 +47,11 @@ export function UpcomingEventsCard({ events }: { events: EventCardProps["event"]
                     <p className="text-sm text-gray-500">{event.location} • {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
                   </div>
                   <div>
-                    <Link href={`/events/${event.id}`}>
-                      <a className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50">
-                        Details
-                      </a>
+                    <Link 
+                      href={`/events/${event.id}`}
+                      className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      Details
                     </Link>
                   </div>
                 </div>
@@ -62,10 +63,11 @@ export function UpcomingEventsCard({ events }: { events: EventCardProps["event"]
         </ul>
       </CardContent>
       <CardFooter className="bg-gray-50 px-4 py-3">
-        <Link href="/events">
-          <a className="text-sm font-medium text-primary hover:text-primary-dark flex items-center">
-            View all events <ArrowRight className="ml-1 h-4 w-4" />
-          </a>
+        <Link 
+          href="/events" 
+          className="text-sm font-medium text-primary hover:text-primary-dark flex items-center"
+        >
+          View all events <ArrowRight className="ml-1 h-4 w-4" />
         </Link>
       </CardFooter>
     </Card>
@@ -130,10 +132,11 @@ export function RecentJobsCard({ jobs }: { jobs: JobCardProps["job"][] }) {
         </ul>
       </CardContent>
       <CardFooter className="bg-gray-50 px-4 py-3">
-        <Link href="/jobs">
-          <a className="text-sm font-medium text-primary hover:text-primary-dark flex items-center">
-            View all jobs <ArrowRight className="ml-1 h-4 w-4" />
-          </a>
+        <Link 
+          href="/jobs" 
+          className="text-sm font-medium text-primary hover:text-primary-dark flex items-center"
+        >
+          View all jobs <ArrowRight className="ml-1 h-4 w-4" />
         </Link>
       </CardFooter>
     </Card>
@@ -195,10 +198,11 @@ export function RecentDiscussionsCard({ discussions }: { discussions: Discussion
         </ul>
       </CardContent>
       <CardFooter className="bg-gray-50 px-4 py-3">
-        <Link href="/forum">
-          <a className="text-sm font-medium text-primary hover:text-primary-dark flex items-center">
-            View all discussions <ArrowRight className="ml-1 h-4 w-4" />
-          </a>
+        <Link 
+          href="/forum" 
+          className="text-sm font-medium text-primary hover:text-primary-dark flex items-center"
+        >
+          View all discussions <ArrowRight className="ml-1 h-4 w-4" />
         </Link>
       </CardFooter>
     </Card>
