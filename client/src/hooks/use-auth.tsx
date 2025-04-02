@@ -38,6 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Redirect based on user role
+      if (user.isAdmin) {
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.href = "/";
+      }
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.firstName}!`,
@@ -59,6 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Redirect based on user role
+      if (user.isAdmin) {
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.href = "/";
+      }
+      
       toast({
         title: "Registration successful",
         description: `Welcome to Vignan Alumni, ${user.firstName}!`,
@@ -79,6 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      
+      // Redirect to auth page after logout
+      window.location.href = "/auth";
+      
       toast({
         title: "Logged out successfully",
       });

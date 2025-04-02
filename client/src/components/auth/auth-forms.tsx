@@ -76,7 +76,7 @@ export function AuthForms() {
             <div className="inline-flex rounded-md shadow-sm">
               <button
                 onClick={() => setUserType("alumni")}
-                className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+                className={`userType-alumni px-4 py-2 text-sm font-medium rounded-l-md ${
                   userType === "alumni"
                     ? "bg-primary text-white"
                     : "bg-gray-100 text-gray-700"
@@ -86,7 +86,7 @@ export function AuthForms() {
               </button>
               <button
                 onClick={() => setUserType("admin")}
-                className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+                className={`userType-admin px-4 py-2 text-sm font-medium rounded-r-md ${
                   userType === "admin"
                     ? "bg-primary text-white"
                     : "bg-gray-100 text-gray-700"
@@ -116,7 +116,21 @@ function LoginForm() {
   });
 
   function onSubmit(values: LoginFormValues) {
-    loginMutation.mutate(values);
+    // Get user type from parent component
+    const userType = document.querySelector('.userType-alumni')?.classList.contains('bg-primary') 
+      ? 'alumni' 
+      : 'admin';
+    
+    // For admin login, validate against hardcoded credentials
+    if (userType === 'admin' && values.username === 'admin' && values.password === 'admin123') {
+      loginMutation.mutate({
+        username: 'admin',
+        password: 'admin123'
+      });
+    } else {
+      // For regular alumni login
+      loginMutation.mutate(values);
+    }
   }
 
   return (

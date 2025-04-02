@@ -10,7 +10,12 @@ export default function AuthPage() {
   // Redirect to dashboard if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/");
+      // Redirect admin users to admin dashboard, regular users to alumni dashboard
+      if (user.isAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     }
   }, [user, navigate]);
   
