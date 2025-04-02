@@ -10,21 +10,47 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AtSign, Phone, MapPin, Building2, Briefcase, User as UserIcon, GraduationCap } from "lucide-react";
+import { 
+  AtSign, Phone, MapPin, Building2, Briefcase, User as UserIcon, GraduationCap, 
+  Calendar, MapPinned, Flag, Hash, Cake, UserCircle, School, Award, Linkedin,
+  Workflow, Layers, BookOpen
+} from "lucide-react";
 
 // Profile update schema
 const profileSchema = z.object({
+  // Personal Data
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
   address: z.string().optional(),
-  company: z.string().optional(),
-  position: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  pincode: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  gender: z.string().optional(),
   bio: z.string().optional(),
   profileImage: z.string().optional(),
+  
+  // Educational Data
   graduationYear: z.coerce.number().optional(),
   degree: z.string().optional(),
+  branch: z.string().optional(),
+  collegeName: z.string().optional(),
+  rollNumber: z.string().optional(),
+  achievements: z.string().optional(),
+  
+  // Professional Data
+  company: z.string().optional(),
+  position: z.string().optional(),
+  workExperience: z.coerce.number().optional(),
+  industry: z.string().optional(),
+  linkedinProfile: z.string().optional(),
+  skills: z.string().optional(),
+  
+  // Profile completion status
+  isProfileComplete: z.boolean().default(true),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -42,17 +68,39 @@ export function ProfileForm({ user, onSubmit, isSubmitting }: ProfileFormProps) 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
+      // Personal data
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       phone: user.phone || "",
       address: user.address || "",
-      company: user.company || "",
-      position: user.position || "",
+      city: user.city || "",
+      state: user.state || "",
+      country: user.country || "",
+      pincode: user.pincode || "",
+      dateOfBirth: user.dateOfBirth || "",
+      gender: user.gender || "",
       bio: user.bio || "",
       profileImage: user.profileImage || "",
+      
+      // Educational data
       graduationYear: user.graduationYear || undefined,
       degree: user.degree || "",
+      branch: user.branch || "",
+      collegeName: user.collegeName || "",
+      rollNumber: user.rollNumber || "",
+      achievements: user.achievements || "",
+      
+      // Professional data
+      company: user.company || "",
+      position: user.position || "",
+      workExperience: user.workExperience || undefined,
+      industry: user.industry || "",
+      linkedinProfile: user.linkedinProfile || "",
+      skills: user.skills || "",
+      
+      // Profile status
+      isProfileComplete: true,
     },
   });
 
@@ -167,7 +215,7 @@ export function ProfileForm({ user, onSubmit, isSubmitting }: ProfileFormProps) 
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number (Optional)</FormLabel>
+                          <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -182,36 +230,166 @@ export function ProfileForm({ user, onSubmit, isSubmitting }: ProfileFormProps) 
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address (Optional)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                placeholder="Address" 
-                                className="pl-10" 
-                                {...field} 
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Cake className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="YYYY-MM-DD" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger className="pl-10 relative">
+                              <UserCircle className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                            <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          <Input 
+                            placeholder="Street address" 
+                            className="pl-10" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <MapPinned className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="City" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="State/Province" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="pincode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pincode</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Hash className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="Postal/Zip code" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Flag className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          <Input 
+                            placeholder="Country" 
+                            className="pl-10" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={form.control}
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bio (Optional)</FormLabel>
+                      <FormLabel>Bio</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Tell us about yourself" 
@@ -284,20 +462,194 @@ export function ProfileForm({ user, onSubmit, isSubmitting }: ProfileFormProps) 
                     )}
                   />
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="branch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Branch/Specialization</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <BookOpen className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="e.g. Computer Science, Mechanical, etc." 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="collegeName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>College/University Name</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <School className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="College/University name" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="rollNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Roll Number/Student ID</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Your roll number or student ID" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="achievements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Academic Achievements</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Award className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          <Textarea 
+                            placeholder="Mention your academic achievements, awards, etc."
+                            className="min-h-[100px] pl-10" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </TabsContent>
               
               <TabsContent value="professional" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="company"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Building2 className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="Company name" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Job Title</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Briefcase className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="Job title" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="industry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Industry</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Layers className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="Industry you work in" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="workExperience"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Work Experience (years)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Years of experience" 
+                            {...field} 
+                            value={field.value?.toString() || ""}
+                            onChange={(e) => {
+                              const value = e.target.value ? parseInt(e.target.value) : undefined;
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
                 <FormField
                   control={form.control}
-                  name="company"
+                  name="linkedinProfile"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company (Optional)</FormLabel>
+                      <FormLabel>LinkedIn Profile</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Building2 className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          <Linkedin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                           <Input 
-                            placeholder="Company name" 
+                            placeholder="LinkedIn profile URL" 
                             className="pl-10" 
                             {...field} 
                           />
@@ -310,20 +662,23 @@ export function ProfileForm({ user, onSubmit, isSubmitting }: ProfileFormProps) 
                 
                 <FormField
                   control={form.control}
-                  name="position"
+                  name="skills"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Job Title (Optional)</FormLabel>
+                      <FormLabel>Skills</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Briefcase className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                          <Input 
-                            placeholder="Job title" 
-                            className="pl-10" 
+                          <Workflow className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                          <Textarea 
+                            placeholder="List your professional skills, separated by commas"
+                            className="min-h-[100px] pl-10" 
                             {...field} 
                           />
                         </div>
                       </FormControl>
+                      <FormDescription>
+                        Enter your key skills separated by commas (e.g. Project Management, Data Analysis, Programming)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

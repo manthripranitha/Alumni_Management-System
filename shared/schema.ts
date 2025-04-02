@@ -11,14 +11,39 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   profileImage: text("profile_image"),
-  graduationYear: integer("graduation_year"),
-  degree: text("degree"),
-  isAdmin: boolean("is_admin").notNull().default(false),
+  
+  // Personal Data
   phone: text("phone"),
   address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  country: text("country"),
+  pincode: text("pincode"),
+  dateOfBirth: text("date_of_birth"),
+  gender: text("gender"),
+  bio: text("bio"),
+  
+  // Educational Data
+  graduationYear: integer("graduation_year"),
+  degree: text("degree"),
+  branch: text("branch"),
+  collegeName: text("college_name"),
+  rollNumber: text("roll_number"),
+  achievements: text("achievements"),
+  
+  // Professional Data
   company: text("company"),
   position: text("position"),
-  bio: text("bio"),
+  workExperience: integer("work_experience"),
+  industry: text("industry"),
+  linkedinProfile: text("linkedin_profile"),
+  skills: text("skills"),
+  
+  // Admin status
+  isAdmin: boolean("is_admin").notNull().default(false),
+  
+  // Profile completion status
+  isProfileComplete: boolean("is_profile_complete").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

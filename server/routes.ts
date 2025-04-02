@@ -93,6 +93,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Profile update endpoint - for logged in user to update their own profile
+  app.put("/api/profile", ensureAuthenticated, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const userId = req.user.id;
+      const profileData = req.body;
+      
+      // Mark profile as complete if this is a comprehensive update
+      if (profileData.isProfileComplete === undefined) {
+        profileData.isProfileComplete = true;
+      }
+      
+      const updatedUser = await storage.updateUser(userId, profileData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Remove password before sending response
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+  
   // Event routes
   app.get("/api/events", async (req, res) => {
     try {

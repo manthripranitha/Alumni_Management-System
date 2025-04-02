@@ -74,7 +74,7 @@ export interface IStorage {
   deleteReply(id: number): Promise<boolean>;
 
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 // In-memory storage implementation
@@ -88,7 +88,7 @@ export class MemStorage implements IStorage {
   private discussions: Map<number, Discussion>;
   private replies: Map<number, Reply>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   // Current IDs for auto-increment
   private currentUserId: number;
@@ -215,7 +215,35 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id, profileImage: null };
+    // Ensure all nullable fields are properly initialized
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      profileImage: null,
+      phone: insertUser.phone ?? null,
+      address: insertUser.address ?? null,
+      city: insertUser.city ?? null,
+      state: insertUser.state ?? null,
+      country: insertUser.country ?? null,
+      pincode: insertUser.pincode ?? null,
+      dateOfBirth: insertUser.dateOfBirth ?? null,
+      gender: insertUser.gender ?? null,
+      bio: insertUser.bio ?? null,
+      graduationYear: insertUser.graduationYear ?? null,
+      degree: insertUser.degree ?? null,
+      branch: insertUser.branch ?? null,
+      collegeName: insertUser.collegeName ?? null,
+      rollNumber: insertUser.rollNumber ?? null,
+      achievements: insertUser.achievements ?? null,
+      company: insertUser.company ?? null,
+      position: insertUser.position ?? null,
+      workExperience: insertUser.workExperience ?? null,
+      industry: insertUser.industry ?? null,
+      linkedinProfile: insertUser.linkedinProfile ?? null,
+      skills: insertUser.skills ?? null,
+      isProfileComplete: insertUser.isProfileComplete ?? false,
+      isAdmin: insertUser.isAdmin !== undefined ? insertUser.isAdmin : false
+    };
     this.users.set(id, user);
     return user;
   }
@@ -308,7 +336,8 @@ export class MemStorage implements IStorage {
     const job: Job = { 
       ...insertJob, 
       id, 
-      postedAt: new Date() 
+      postedAt: new Date(),
+      expiresAt: insertJob.expiresAt ?? null
     };
     this.jobs.set(id, job);
     return job;
@@ -341,7 +370,8 @@ export class MemStorage implements IStorage {
     const gallery: Gallery = { 
       ...insertGallery, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      description: insertGallery.description ?? null
     };
     this.galleries.set(id, gallery);
     return gallery;
@@ -376,7 +406,8 @@ export class MemStorage implements IStorage {
     const image: GalleryImage = { 
       ...insertImage, 
       id, 
-      uploadedAt: new Date() 
+      uploadedAt: new Date(),
+      caption: insertImage.caption ?? null
     };
     this.galleryImages.set(id, image);
     return image;
