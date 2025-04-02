@@ -241,10 +241,12 @@ export default function AdminEvents() {
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-            <CalendarPlus className="h-4 w-4" />
-            Create Event
-          </Button>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <CalendarPlus className="h-4 w-4" />
+              Create Event
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Create New Event</DialogTitle>
