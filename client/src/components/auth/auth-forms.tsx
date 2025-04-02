@@ -121,11 +121,11 @@ function LoginForm() {
       ? 'alumni' 
       : 'admin';
     
-    // For admin login, validate against hardcoded credentials
-    if (userType === 'admin' && values.username === 'admin' && values.password === 'admin123') {
+    // For admin login, use the admin credentials
+    if (userType === 'admin') {
       loginMutation.mutate({
         username: 'admin',
-        password: 'admin123'
+        password: 'admin'
       });
     } else {
       // For regular alumni login
