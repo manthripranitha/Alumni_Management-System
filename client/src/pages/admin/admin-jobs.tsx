@@ -196,12 +196,10 @@ export default function AdminJobs() {
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Post New Job
-            </Button>
-          </DialogTrigger>
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Post New Job
+          </Button>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Post New Job</DialogTitle>

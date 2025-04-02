@@ -23,23 +23,8 @@ const eventFormSchema = insertEventSchema
     time: z.string().min(1, "Event time is required"),
     image: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      const eventDateTime = new Date(data.date);
-      
-      // Extract hours and minutes from the time string
-      const [hours, minutes] = data.time.split(":").map(Number);
-      
-      eventDateTime.setHours(hours, minutes);
-      
-      // Check if the date is in the future
-      return eventDateTime > new Date();
-    },
-    {
-      message: "Event date and time must be in the future",
-      path: ["date"],
-    }
-  );
+  // Remove the refine validation that was causing issues
+  // This allows events to be created without time restrictions
 
 // Custom type that extends the event schema with our form-specific fields
 type EventFormValues = z.infer<typeof eventFormSchema> & {

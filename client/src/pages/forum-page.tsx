@@ -143,12 +143,10 @@ export default function ForumPage() {
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Discussion
-            </Button>
-          </DialogTrigger>
+          <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Discussion
+          </Button>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Start a New Discussion</DialogTitle>
