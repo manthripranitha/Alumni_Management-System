@@ -158,6 +158,45 @@ export const insertReplySchema = createInsertSchema(replies).omit({
   createdAt: true,
 });
 
+// Document Upload System
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  documentType: text("document_type").notNull(), // resume, certificate, marksheet, etc.
+  fileUrl: text("file_url").notNull(),
+  fileType: text("file_type").notNull(), // pdf, jpg, jpeg, etc.
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  adminFeedback: text("admin_feedback"),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  status: true,
+  adminFeedback: true,
+  uploadedAt: true,
+  updatedAt: true,
+});
+
+// Direct Messaging System
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull(),
+  receiverId: integer("receiver_id").notNull(),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  sentAt: timestamp("sent_at").notNull().defaultNow(),
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  isRead: true,
+  sentAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -182,3 +221,9 @@ export type InsertDiscussion = z.infer<typeof insertDiscussionSchema>;
 
 export type Reply = typeof replies.$inferSelect;
 export type InsertReply = z.infer<typeof insertReplySchema>;
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;

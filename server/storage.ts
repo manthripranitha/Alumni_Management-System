@@ -6,7 +6,9 @@ import {
   Gallery, InsertGallery,
   GalleryImage, InsertGalleryImage,
   Discussion, InsertDiscussion,
-  Reply, InsertReply
+  Reply, InsertReply,
+  Document, InsertDocument,
+  Message, InsertMessage
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -72,6 +74,22 @@ export interface IStorage {
   createReply(reply: InsertReply): Promise<Reply>;
   updateReply(id: number, reply: Partial<Reply>): Promise<Reply | undefined>;
   deleteReply(id: number): Promise<boolean>;
+  
+  // Document operations
+  getDocument(id: number): Promise<Document | undefined>;
+  getDocuments(): Promise<Document[]>;
+  getDocumentsByUser(userId: number): Promise<Document[]>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, document: Partial<Document>): Promise<Document | undefined>;
+  deleteDocument(id: number): Promise<boolean>;
+  
+  // Message operations
+  getMessage(id: number): Promise<Message | undefined>;
+  getMessagesByUser(userId: number): Promise<Message[]>;
+  getConversation(userId1: number, userId2: number): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  markMessageAsRead(id: number): Promise<Message | undefined>;
+  deleteMessage(id: number): Promise<boolean>;
 
   // Session store
   sessionStore: session.Store;
@@ -87,6 +105,8 @@ export class MemStorage implements IStorage {
   private galleryImages: Map<number, GalleryImage>;
   private discussions: Map<number, Discussion>;
   private replies: Map<number, Reply>;
+  private documents: Map<number, Document>;
+  private messages: Map<number, Message>;
   
   sessionStore: session.Store;
   
@@ -99,6 +119,8 @@ export class MemStorage implements IStorage {
   private currentGalleryImageId: number;
   private currentDiscussionId: number;
   private currentReplyId: number;
+  private currentDocumentId: number;
+  private currentMessageId: number;
 
   constructor() {
     this.users = new Map();
@@ -109,6 +131,8 @@ export class MemStorage implements IStorage {
     this.galleryImages = new Map();
     this.discussions = new Map();
     this.replies = new Map();
+    this.documents = new Map();
+    this.messages = new Map();
     
     this.currentUserId = 1;
     this.currentEventId = 1;
@@ -118,6 +142,8 @@ export class MemStorage implements IStorage {
     this.currentGalleryImageId = 1;
     this.currentDiscussionId = 1;
     this.currentReplyId = 1;
+    this.currentDocumentId = 1;
+    this.currentMessageId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // Prune expired entries every 24h
@@ -493,6 +519,99 @@ export class MemStorage implements IStorage {
   
   async deleteReply(id: number): Promise<boolean> {
     return this.replies.delete(id);
+  }
+  
+  // Document operations
+  async getDocument(id: number): Promise<Document | undefined> {
+    return this.documents.get(id);
+  }
+  
+  async getDocuments(): Promise<Document[]> {
+    return Array.from(this.documents.values());
+  }
+  
+  async getDocumentsByUser(userId: number): Promise<Document[]> {
+    return Array.from(this.documents.values()).filter(
+      (document) => document.userId === userId
+    );
+  }
+  
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const id = this.currentDocumentId++;
+    const document: Document = { 
+      ...insertDocument, 
+      id, 
+      status: "pending",
+      adminFeedback: null,
+      uploadedAt: new Date(),
+      updatedAt: null,
+      description: insertDocument.description ?? null
+    };
+    this.documents.set(id, document);
+    return document;
+  }
+  
+  async updateDocument(id: number, documentData: Partial<Document>): Promise<Document | undefined> {
+    const document = this.documents.get(id);
+    if (!document) return undefined;
+    
+    const updatedDocument = { 
+      ...document, 
+      ...documentData,
+      updatedAt: new Date()
+    };
+    this.documents.set(id, updatedDocument);
+    return updatedDocument;
+  }
+  
+  async deleteDocument(id: number): Promise<boolean> {
+    return this.documents.delete(id);
+  }
+  
+  // Message operations
+  async getMessage(id: number): Promise<Message | undefined> {
+    return this.messages.get(id);
+  }
+  
+  async getMessagesByUser(userId: number): Promise<Message[]> {
+    return Array.from(this.messages.values()).filter(
+      (message) => message.senderId === userId || message.receiverId === userId
+    );
+  }
+  
+  async getConversation(userId1: number, userId2: number): Promise<Message[]> {
+    return Array.from(this.messages.values())
+      .filter(
+        (message) => 
+          (message.senderId === userId1 && message.receiverId === userId2) ||
+          (message.senderId === userId2 && message.receiverId === userId1)
+      )
+      .sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+  }
+  
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const id = this.currentMessageId++;
+    const message: Message = { 
+      ...insertMessage, 
+      id, 
+      isRead: false,
+      sentAt: new Date()
+    };
+    this.messages.set(id, message);
+    return message;
+  }
+  
+  async markMessageAsRead(id: number): Promise<Message | undefined> {
+    const message = this.messages.get(id);
+    if (!message) return undefined;
+    
+    const updatedMessage = { ...message, isRead: true };
+    this.messages.set(id, updatedMessage);
+    return updatedMessage;
+  }
+  
+  async deleteMessage(id: number): Promise<boolean> {
+    return this.messages.delete(id);
   }
 }
 

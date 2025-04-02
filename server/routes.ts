@@ -9,7 +9,9 @@ import {
   insertGalleryImageSchema, 
   insertDiscussionSchema, 
   insertReplySchema,
-  insertEventRegistrationSchema
+  insertEventRegistrationSchema,
+  insertDocumentSchema,
+  insertMessageSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -643,6 +645,235 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete reply" });
+    }
+  });
+
+  // Document routes
+  app.get("/api/documents", ensureAuthenticated, async (req, res) => {
+    try {
+      // If admin, get all documents, otherwise get only the user's documents
+      let documents;
+      if (req.user?.isAdmin) {
+        documents = await storage.getDocuments();
+      } else {
+        documents = await storage.getDocumentsByUser(req.user!.id);
+      }
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/users/:userId/documents", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Only allow admins or the user themselves to view their documents
+      if (req.user?.id !== userId && !req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: You can only view your own documents" });
+      }
+      
+      const documents = await storage.getDocumentsByUser(userId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/documents/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Only allow admins or the document owner to view the document
+      if (req.user?.id !== document.userId && !req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: You can only view your own documents" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+
+  app.post("/api/documents", ensureAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertDocumentSchema.parse({
+        ...req.body,
+        userId: req.user!.id
+      });
+      
+      const document = await storage.createDocument(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to upload document" });
+    }
+  });
+
+  app.put("/api/documents/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Only allow admins or the document owner to update the document
+      // Alumni can only update their own documents and certain fields
+      // Admins can update any document and any fields (including status and feedback)
+      if (req.user?.id !== document.userId && !req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: You can only update your own documents" });
+      }
+      
+      // If not admin, remove admin-only fields
+      let updateData = req.body;
+      if (!req.user?.isAdmin) {
+        const { status, adminFeedback, ...allowedFields } = updateData;
+        updateData = allowedFields;
+      }
+      
+      const updatedDocument = await storage.updateDocument(documentId, updateData);
+      res.json(updatedDocument);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Only allow admins or the document owner to delete the document
+      if (req.user?.id !== document.userId && !req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: You can only delete your own documents" });
+      }
+      
+      const deleted = await storage.deleteDocument(documentId);
+      if (!deleted) {
+        return res.status(500).json({ message: "Failed to delete document" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  // Message routes
+  app.get("/api/messages", ensureAuthenticated, async (req, res) => {
+    try {
+      const messages = await storage.getMessagesByUser(req.user!.id);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.get("/api/messages/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const message = await storage.getMessage(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      // Only allow sender or receiver to view the message
+      if (req.user?.id !== message.senderId && req.user?.id !== message.receiverId) {
+        return res.status(403).json({ message: "Forbidden: You can only view your own messages" });
+      }
+      
+      // If the user is the receiver, mark message as read if not already
+      if (req.user?.id === message.receiverId && !message.isRead) {
+        await storage.markMessageAsRead(messageId);
+      }
+      
+      res.json(message);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch message" });
+    }
+  });
+
+  app.get("/api/conversations/:userId", ensureAuthenticated, async (req, res) => {
+    try {
+      const otherUserId = parseInt(req.params.userId);
+      
+      // Get the conversation between current user and the other user
+      const conversation = await storage.getConversation(req.user!.id, otherUserId);
+      
+      // Mark all messages as read where current user is the receiver
+      for (const message of conversation) {
+        if (message.receiverId === req.user!.id && !message.isRead) {
+          await storage.markMessageAsRead(message.id);
+        }
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
+  app.post("/api/messages", ensureAuthenticated, async (req, res) => {
+    try {
+      // Validate the request
+      const validatedData = insertMessageSchema.parse({
+        ...req.body,
+        senderId: req.user!.id
+      });
+      
+      // Make sure the receiver exists
+      const receiver = await storage.getUser(validatedData.receiverId);
+      if (!receiver) {
+        return res.status(404).json({ message: "Recipient not found" });
+      }
+      
+      // Create the message
+      const message = await storage.createMessage(validatedData);
+      res.status(201).json(message);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  app.delete("/api/messages/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const message = await storage.getMessage(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      // Only allow sender or receiver to delete the message
+      if (req.user?.id !== message.senderId && req.user?.id !== message.receiverId) {
+        return res.status(403).json({ message: "Forbidden: You can only delete your own messages" });
+      }
+      
+      const deleted = await storage.deleteMessage(messageId);
+      if (!deleted) {
+        return res.status(500).json({ message: "Failed to delete message" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete message" });
     }
   });
 

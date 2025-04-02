@@ -18,7 +18,10 @@ import {
   Image as ImageIcon, 
   MessageSquareText, 
   Menu, 
-  X 
+  X,
+  FileText,
+  MessageCircle,
+  FileCog
 } from "lucide-react";
 import vignanLogo from "../../assets/vignan_logo.png";
 
@@ -133,6 +136,20 @@ export function Sidebar() {
                 onClick={closeMobileMenu}
               />
               <NavLink 
+                href="/documents" 
+                icon={<FileText className="mr-3 h-5 w-5 text-primary-300" />} 
+                label="My Documents" 
+                active={location === "/documents"}
+                onClick={closeMobileMenu}
+              />
+              <NavLink 
+                href="/messages" 
+                icon={<MessageCircle className="mr-3 h-5 w-5 text-primary-300" />} 
+                label="Messages" 
+                active={location === "/messages"}
+                onClick={closeMobileMenu}
+              />
+              <NavLink 
                 href="/alumni" 
                 icon={<Users className="mr-3 h-5 w-5 text-primary-300" />} 
                 label="Alumni Directory" 
@@ -187,6 +204,13 @@ export function Sidebar() {
                   icon={<MessageSquareText className="mr-3 h-5 w-5 text-primary-300" />} 
                   label="Manage Forum" 
                   active={location === "/admin/forum"}
+                  onClick={closeMobileMenu}
+                />
+                <NavLink 
+                  href="/admin/documents" 
+                  icon={<FileCog className="mr-3 h-5 w-5 text-primary-300" />} 
+                  label="Manage Documents" 
+                  active={location === "/admin/documents"}
                   onClick={closeMobileMenu}
                 />
               </div>

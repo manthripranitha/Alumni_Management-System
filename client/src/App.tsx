@@ -8,12 +8,15 @@ import JobsPage from "@/pages/jobs-page";
 import GalleryPage from "@/pages/gallery-page";
 import ForumPage from "@/pages/forum-page";
 import ProfilePage from "@/pages/profile-page";
+import DocumentsPage from "@/pages/documents-page";
+import MessagesPage from "@/pages/messages-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import AdminEvents from "@/pages/admin/admin-events";
 import AdminJobs from "@/pages/admin/admin-jobs";
 import AdminGallery from "@/pages/admin/admin-gallery";
 import AdminForum from "@/pages/admin/admin-forum";
 import AdminUsers from "@/pages/admin/admin-users";
+import AdminDocuments from "@/pages/admin/admin-documents";
 import TestAuth from "@/pages/test-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
@@ -31,6 +34,8 @@ function Router() {
       <ProtectedRoute path="/gallery" component={GalleryPage} />
       <ProtectedRoute path="/forum" component={ForumPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/documents" component={DocumentsPage} />
+      <ProtectedRoute path="/messages" component={MessagesPage} />
       
       {/* Admin-only routes */}
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
@@ -39,6 +44,7 @@ function Router() {
       <ProtectedRoute path="/admin/gallery" component={AdminGallery} adminOnly={true} />
       <ProtectedRoute path="/admin/forum" component={AdminForum} adminOnly={true} />
       <ProtectedRoute path="/admin/users" component={AdminUsers} adminOnly={true} />
+      <ProtectedRoute path="/admin/documents" component={AdminDocuments} adminOnly={true} />
       
       <Route component={NotFound} />
     </Switch>
