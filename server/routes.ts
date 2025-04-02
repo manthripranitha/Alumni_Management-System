@@ -148,32 +148,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Received event creation request with body:", req.body);
       
-      // Check if the request body has all required fields
-      if (!req.body.title || !req.body.description || !req.body.date || !req.body.location) {
-        console.log("Missing required fields in event creation request");
-        return res.status(400).json({ 
-          message: "Missing required fields",
-          missing: {
-            title: !req.body.title,
-            description: !req.body.description,
-            date: !req.body.date,
-            location: !req.body.location
-          }
-        });
+      // Handle image uploads in base64 format
+      let eventData = req.body;
+      let imageData = null;
+      
+      // If there's a base64 image, extract it
+      if (eventData.image && eventData.image.startsWith('data:image')) {
+        console.log("Processing base64 image data");
+        imageData = eventData.image;
+        // Keep the image in the database
       }
       
-      // Try to validate the data
+      // Convert the date string to a Date object if it's not already
+      if (typeof eventData.date === 'string') {
+        eventData.date = new Date(eventData.date);
+      }
+      
       try {
-        const validatedData = insertEventSchema.parse(req.body);
-        console.log("Event data validated successfully:", validatedData);
+        // Ensure we have all required fields before validation
+        if (!eventData.title || !eventData.description || !eventData.date || !eventData.location) {
+          return res.status(400).json({ 
+            message: "Missing required fields",
+            missing: {
+              title: !eventData.title,
+              description: !eventData.description,
+              date: !eventData.date,
+              location: !eventData.location
+            }
+          });
+        }
         
-        // Create the event
-        const event = await storage.createEvent({
-          ...validatedData,
-          createdBy: req.user.id,
+        // Validate the data using our schema
+        const validatedData = insertEventSchema.parse({
+          title: eventData.title,
+          description: eventData.description,
+          date: eventData.date,
+          location: eventData.location,
+          createdBy: req.user!.id
         });
         
-        console.log("Event created successfully:", event);
+        console.log("Event data validated successfully:", validatedData);
+        
+        // Create the event with the validated data and include the image if available
+        const event = await storage.createEvent({
+          ...validatedData,
+          image: imageData
+        });
+        
+        console.log("Event created successfully:", {
+          ...event,
+          image: event.image ? `[base64 data, length: ${event.image.length}]` : null
+        });
+        
         res.status(201).json(event);
       } catch (validationError) {
         console.error("Validation error during event creation:", validationError);
@@ -196,9 +222,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      const updatedEvent = await storage.updateEvent(eventId, req.body);
-      res.json(updatedEvent);
+      try {
+        // Handle image updates in base64 format
+        let eventData = req.body;
+        let updateData: any = { ...eventData };
+        let imageData = null;
+        
+        // Process image data
+        if (eventData.image) {
+          if (eventData.image.startsWith('data:image')) {
+            console.log("Processing updated base64 image data");
+            imageData = eventData.image; // Keep base64 image data
+          } else if (eventData.image.startsWith('http')) {
+            console.log("Keeping image URL:", eventData.image);
+            imageData = eventData.image; // Keep URL as is
+          } else if (eventData.image.trim() === "") {
+            console.log("Removing image (empty string)");
+            imageData = null; // Set to null to remove image
+          }
+        }
+        
+        // Update image data
+        updateData.image = imageData;
+        
+        // Convert the date string to a Date object if it's not already
+        if (typeof updateData.date === 'string') {
+          updateData.date = new Date(updateData.date);
+        }
+        
+        // Validate core event data (excluding image which is handled separately)
+        const { image, ...coreEventData } = updateData;
+        
+        // Validate the core data
+        const validatedData = insertEventSchema.partial().parse({
+          title: coreEventData.title,
+          description: coreEventData.description,
+          date: coreEventData.date,
+          location: coreEventData.location
+        });
+        
+        console.log("Event data validated successfully:", {
+          ...validatedData,
+          hasImage: image !== undefined && image !== null
+        });
+        
+        // Combine validated data with possibly image
+        const finalUpdateData = {
+          ...validatedData,
+          image
+        };
+        
+        console.log("Updating event with data:", {
+          ...finalUpdateData,
+          image: finalUpdateData.image ? 
+            (typeof finalUpdateData.image === 'string' && finalUpdateData.image.startsWith('data:') ? 
+              `[base64 data, length: ${finalUpdateData.image.length}]` : finalUpdateData.image) 
+            : null
+        });
+        
+        const updatedEvent = await storage.updateEvent(eventId, finalUpdateData);
+        res.json(updatedEvent);
+      } catch (validationError) {
+        console.error("Validation error during event update:", validationError);
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ message: "Validation error", errors: validationError.errors });
+        }
+        throw validationError; // Re-throw to be caught by outer try-catch
+      }
     } catch (error) {
+      console.error("Error updating event:", error);
       res.status(500).json({ message: "Failed to update event" });
     }
   });

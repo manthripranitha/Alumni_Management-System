@@ -144,14 +144,18 @@ export default function AdminEvents() {
     const [hours, minutes] = time.split(':').map(Number);
     eventDate.setHours(hours, minutes, 0, 0);
     
-    // Create the event data
+    // Create the event data including the image if present
     const eventData = {
       ...rest,
       date: eventDate,
+      // Image data will be sent as is (base64 or URL)
       // Don't set createdBy - it will be set on the server from the authenticated user
     };
     
-    console.log("Sending event data to API:", eventData);
+    console.log("Sending event data to API:", {
+      ...eventData,
+      image: eventData.image ? `[Image data, length: ${eventData.image.length}]` : null
+    });
     
     createEventMutation.mutate(eventData);
   };
@@ -167,12 +171,20 @@ export default function AdminEvents() {
     const [hours, minutes] = time.split(':').map(Number);
     eventDate.setHours(hours, minutes, 0, 0);
     
+    const eventData = {
+      ...rest,
+      date: eventDate,
+      // Image will be sent as is (base64 or URL)
+    };
+    
+    console.log("Updating event with data:", {
+      ...eventData,
+      image: eventData.image ? `[Image data, length: ${eventData.image.length}]` : null
+    });
+    
     updateEventMutation.mutate({
       id: selectedEvent.id,
-      data: {
-        ...rest,
-        date: eventDate,
-      },
+      data: eventData,
     });
   };
   
@@ -412,7 +424,8 @@ export default function AdminEvents() {
                 description: selectedEvent.description,
                 location: selectedEvent.location,
                 date: new Date(selectedEvent.date),
-                time: new Date(selectedEvent.date).toTimeString().slice(0, 5)
+                time: new Date(selectedEvent.date).toTimeString().slice(0, 5),
+                image: selectedEvent.image || ""
               }}
               onSubmit={handleEditEvent}
               isSubmitting={updateEventMutation.isPending}

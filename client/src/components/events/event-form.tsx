@@ -40,8 +40,8 @@ interface EventFormProps {
 }
 
 export function EventForm({ defaultValues, onSubmit, isSubmitting, mode }: EventFormProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('url');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(defaultValues?.image || null);
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>(defaultValues?.image && !defaultValues.image.startsWith('data:') ? 'url' : 'file');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<EventFormValues>({

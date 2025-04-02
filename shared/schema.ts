@@ -64,7 +64,6 @@ export const events = pgTable("events", {
 
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
-  image: true,
 });
 
 // Event Registrations
