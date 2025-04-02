@@ -33,10 +33,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, MoreHorizontal, User as UserIcon, Users, GraduationCap, Mail, Briefcase, UserCog, Shield, ShieldAlert, Trash2 } from "lucide-react";
+import { Search, MoreHorizontal, User as UserIcon, Users, GraduationCap, Mail, Briefcase, UserCog, Shield, ShieldAlert, Trash2, Phone, MapPin, Edit, Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function AdminUsers() {
   const { toast } = useToast();
@@ -45,6 +46,8 @@ export default function AdminUsers() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState<Partial<User>>({});
   
   // Fetch users
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -118,6 +121,30 @@ export default function AdminUsers() {
     },
   });
   
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { id: number; userData: Partial<User> }) => {
+      const res = await apiRequest("PUT", `/api/users/${data.id}`, data.userData);
+      return await res.json();
+    },
+    onSuccess: (updatedUser) => {
+      setIsEditing(false);
+      setSelectedUser(updatedUser);
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "User updated",
+        description: "User information has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update user",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Filter users based on search and view type
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
@@ -164,6 +191,60 @@ export default function AdminUsers() {
   const openDeleteDialog = (user: User) => {
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
+  };
+  
+  // Toggle edit mode
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // Cancel editing
+      setIsEditing(false);
+      setEditedUser({});
+    } else {
+      // Start editing - populate form with current user values
+      if (selectedUser) {
+        setEditedUser({
+          firstName: selectedUser.firstName,
+          lastName: selectedUser.lastName,
+          email: selectedUser.email,
+          phone: selectedUser.phone || "",
+          address: selectedUser.address || "",
+          degree: selectedUser.degree || "",
+          graduationYear: selectedUser.graduationYear ? selectedUser.graduationYear : null,
+          company: selectedUser.company || "",
+          position: selectedUser.position || "",
+          bio: selectedUser.bio || "",
+        });
+        setIsEditing(true);
+      }
+    }
+  };
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    // Special handling for graduation year (convert to number or null)
+    if (name === 'graduationYear') {
+      setEditedUser(prev => ({
+        ...prev,
+        [name]: value ? parseInt(value, 10) : null
+      }));
+    } else {
+      setEditedUser(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  
+  // Save user edits
+  const saveUserEdits = () => {
+    if (selectedUser && editedUser) {
+      updateUserMutation.mutate({
+        id: selectedUser.id,
+        userData: editedUser
+      });
+    }
   };
   
   // Loading state
@@ -406,23 +487,88 @@ export default function AdminUsers() {
                     <CardTitle className="text-base">Personal Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{selectedUser.email}</span>
-                    </div>
-                    
-                    {selectedUser.phone && (
-                      <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{selectedUser.phone}</span>
-                      </div>
-                    )}
-                    
-                    {selectedUser.address && (
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{selectedUser.address}</span>
-                      </div>
+                    {isEditing ? (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                              id="firstName"
+                              name="firstName"
+                              value={editedUser.firstName || ""}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                              id="lastName"
+                              name="lastName"
+                              value={editedUser.lastName || ""}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Input
+                              id="email"
+                              name="email"
+                              type="email"
+                              value={editedUser.email || ""}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone</Label>
+                          <div className="flex items-center">
+                            <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Input
+                              id="phone"
+                              name="phone"
+                              type="tel"
+                              value={editedUser.phone || ""}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Address</Label>
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Input
+                              id="address"
+                              name="address"
+                              value={editedUser.address || ""}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span>{selectedUser.email}</span>
+                        </div>
+                        
+                        {selectedUser.phone && (
+                          <div className="flex items-center">
+                            <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span>{selectedUser.phone}</span>
+                          </div>
+                        )}
+                        
+                        {selectedUser.address && (
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span>{selectedUser.address}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -432,65 +578,161 @@ export default function AdminUsers() {
                     <CardTitle className="text-base">Education & Work</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {selectedUser.degree && (
-                      <div className="flex items-center">
-                        <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{selectedUser.degree}{selectedUser.graduationYear ? `, ${selectedUser.graduationYear}` : ''}</span>
-                      </div>
-                    )}
-                    
-                    {selectedUser.company && (
-                      <div className="flex items-center">
-                        <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{selectedUser.position ? `${selectedUser.position} at ` : ''}{selectedUser.company}</span>
-                      </div>
+                    {isEditing ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="degree">Degree</Label>
+                          <div className="flex items-center">
+                            <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Input
+                              id="degree"
+                              name="degree"
+                              value={editedUser.degree || ""}
+                              onChange={handleInputChange}
+                              placeholder="e.g. Bachelor of Science in Computer Science"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="graduationYear">Graduation Year</Label>
+                          <Input
+                            id="graduationYear"
+                            name="graduationYear"
+                            type="number"
+                            value={editedUser.graduationYear !== null ? editedUser.graduationYear : ""}
+                            onChange={handleInputChange}
+                            placeholder="e.g. 2022"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company">Company</Label>
+                          <div className="flex items-center">
+                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Input
+                              id="company"
+                              name="company"
+                              value={editedUser.company || ""}
+                              onChange={handleInputChange}
+                              placeholder="e.g. Acme Corporation"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="position">Position</Label>
+                          <Input
+                            id="position"
+                            name="position"
+                            value={editedUser.position || ""}
+                            onChange={handleInputChange}
+                            placeholder="e.g. Software Engineer"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {selectedUser.degree && (
+                          <div className="flex items-center">
+                            <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span>{selectedUser.degree}{selectedUser.graduationYear ? `, ${selectedUser.graduationYear}` : ''}</span>
+                          </div>
+                        )}
+                        
+                        {selectedUser.company && (
+                          <div className="flex items-center">
+                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span>{selectedUser.position ? `${selectedUser.position} at ` : ''}{selectedUser.company}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </CardContent>
                 </Card>
                 
-                {selectedUser.bio && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Biography</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{selectedUser.bio}</p>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Biography</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Bio</Label>
+                        <textarea
+                          id="bio"
+                          name="bio"
+                          value={editedUser.bio || ""}
+                          onChange={handleInputChange}
+                          className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          placeholder="Tell us about yourself..."
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm">{selectedUser.bio || "No biography provided."}</p>
+                    )}
+                  </CardContent>
+                </Card>
                 
                 <div className="flex space-x-2 justify-end">
-                  {selectedUser.isAdmin ? (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleRemoveAdmin(selectedUser)}
-                      className="gap-2"
-                    >
-                      <ShieldAlert className="h-4 w-4" />
-                      Remove Admin Role
-                    </Button>
+                  {isEditing ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={toggleEditMode}
+                        className="gap-2"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={saveUserEdits}
+                        className="gap-2"
+                        disabled={updateUserMutation.isPending}
+                      >
+                        <Save className="h-4 w-4" />
+                        {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </>
                   ) : (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleMakeAdmin(selectedUser)}
-                      className="gap-2"
-                    >
-                      <Shield className="h-4 w-4" />
-                      Make Administrator
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={toggleEditMode}
+                        className="gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit User
+                      </Button>
+                      {selectedUser.isAdmin ? (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleRemoveAdmin(selectedUser)}
+                          className="gap-2"
+                        >
+                          <ShieldAlert className="h-4 w-4" />
+                          Remove Admin Role
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleMakeAdmin(selectedUser)}
+                          className="gap-2"
+                        >
+                          <Shield className="h-4 w-4" />
+                          Make Administrator
+                        </Button>
+                      )}
+                      
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => {
+                          setIsUserDetailsOpen(false);
+                          openDeleteDialog(selectedUser);
+                        }}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete User
+                      </Button>
+                    </>
                   )}
-                  
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => {
-                      setIsUserDetailsOpen(false);
-                      openDeleteDialog(selectedUser);
-                    }}
-                    className="gap-2"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete User
-                  </Button>
                 </div>
               </div>
             </div>
