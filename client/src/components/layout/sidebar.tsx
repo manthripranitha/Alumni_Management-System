@@ -20,6 +20,7 @@ import {
   Menu, 
   X 
 } from "lucide-react";
+import vignanLogo from "../../assets/vignan_logo.png";
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -57,7 +58,7 @@ export function Sidebar() {
           </button>
           <img
             className="h-8 w-auto"
-            src="https://images.unsplash.com/photo-1599408984828-6ed89ca6e355?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8c2Nob29sLGVkdWNhdGlvbixsb2dvfHx8fHx8MTcxMjI2MzMxMA&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080"
+            src={vignanLogo}
             alt="Vignan University Logo"
           />
           <h1 className="ml-3 text-gray-800 font-medium">Vignan Alumni</h1>
@@ -78,8 +79,8 @@ export function Sidebar() {
       >
         <div className="flex items-center flex-shrink-0 px-4">
           <img
-            className="h-8 w-auto"
-            src="https://images.unsplash.com/photo-1599408984828-6ed89ca6e355?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8c2Nob29sLGVkdWNhdGlvbixsb2dvfHx8fHx8MTcxMjI2MzMxMA&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080"
+            className="h-12 w-auto"
+            src={vignanLogo}
             alt="Vignan University Logo"
           />
           <h1 className="ml-3 text-white font-medium">Vignan Alumni</h1>
@@ -193,7 +194,7 @@ export function Sidebar() {
           </nav>
         </div>
         
-        <div className="flex-shrink-0 flex border-t border-primary-700 p-4">
+        <div className="flex-shrink-0 flex flex-col border-t border-primary-700 p-4">
           <div className="flex-shrink-0 w-full group block">
             <div className="flex items-center">
               <div>
@@ -217,6 +218,11 @@ export function Sidebar() {
                 </Button>
               </div>
             </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-primary-700">
+            <p className="text-xs text-center text-primary-200">
+              Developed And Maintained By<br />Krishna Kant Kumar And Team
+            </p>
           </div>
         </div>
       </div>
