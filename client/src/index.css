@@ -9,14 +9,56 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-color: hsl(48, 33%, 94%);  /* Light cream/ivory background */
   }
 }
 
 /* Custom Styles for Premium Look */
 .app-background {
-  background-color: hsl(54, 100%, 98%);
-  background-image: linear-gradient(to bottom, hsl(54, 100%, 98%), hsl(54, 100%, 92%));
+  background-color: hsl(48, 33%, 94%); /* Light cream base color */
+  background-image: linear-gradient(to bottom, hsl(48, 33%, 97%), hsl(48, 33%, 92%));
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Peacock feather subtle pattern background */
+.app-background::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50 C 60 40, 80 40, 80 50 C 80 60, 60 60, 50 50 Z' fill='%23018970' fill-opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+/* Golden shading for card elements */
+.card {
+  box-shadow: 0 1px 3px rgba(163, 125, 40, 0.05), 0 1px 2px rgba(184, 134, 11, 0.05);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(163, 125, 40, 0.09), 0 2px 4px rgba(184, 134, 11, 0.06);
+}
+
+/* Reading mode with golden tint */
+.reading-mode {
+  background-color: hsl(48, 42%, 95%);
+  border-left: 3px solid hsl(36, 100%, 65%);
+  padding: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* Golden decorative elements */
+.golden-accent {
+  color: hsl(36, 100%, 50%);
 }
 
 /* Cloud Animations */
@@ -99,86 +141,132 @@
   }
 }
 
-/* Flying birds */
-.bird {
+/* Peacock feathers background elements */
+.peacock-feather-float {
   position: absolute;
-  width: 15px;
-  height: 8px;
-  background: transparent;
-  transform: scale(0.8);
+  width: 60px;
+  height: 120px;
+  background-image: radial-gradient(ellipse at 50% 20%, 
+    rgba(1, 137, 112, 0.05) 0%, 
+    rgba(1, 137, 112, 0.1) 40%, 
+    rgba(1, 137, 112, 0.05) 70%);
+  border-radius: 50% 50% 45% 45%;
+  pointer-events: none;
+  transform-origin: center bottom;
+  animation: peacock-sway 8s ease-in-out infinite alternate;
 }
 
-.bird:before, .bird:after {
+.peacock-feather-float::before {
   content: "";
   position: absolute;
-  top: 0;
-  width: 10px;
-  height: 4px;
-  border-radius: 5px;
-  background: #333;
-  transform-origin: 0% 0%;
-  animation: wings 0.8s infinite;
+  top: 18%;
+  left: 35%;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, 
+    rgba(1, 137, 112, 0.2) 0%, 
+    rgba(1, 137, 112, 0.1) 60%, 
+    transparent 100%);
 }
 
-.bird:before {
-  left: 0;
-  transform: rotate(30deg);
+.peacock-feather-float::after {
+  content: "";
+  position: absolute;
+  bottom: 10%;
+  left: 25%;
+  width: 50%;
+  height: 60%;
+  background: linear-gradient(to bottom, 
+    transparent 0%, 
+    rgba(1, 137, 112, 0.05) 50%, 
+    rgba(1, 137, 112, 0.1) 100%);
+  border-radius: 50% 50% 30% 30%;
 }
 
-.bird:after {
-  left: 5px;
-  transform: rotate(-30deg);
-}
-
-@keyframes wings {
-  50% {
-    transform: rotate(-30deg);
+@keyframes peacock-sway {
+  0% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(5deg);
   }
 }
 
-.bird-1 {
+.peacock-feather-1 {
+  top: 20px;
+  left: 10%;
+  animation-delay: 0s;
+  opacity: 0.7;
+}
+
+.peacock-feather-2 {
   top: 40px;
-  left: 20%;
-  animation: fly-1 30s linear infinite;
+  right: 15%;
+  animation-delay: -2s;
+  opacity: 0.6;
+  transform: scale(0.8) rotate(-10deg);
 }
 
-.bird-2 {
+.peacock-feather-3 {
+  top: 100px;
+  left: 30%;
+  animation-delay: -4s;
+  opacity: 0.5;
+  transform: scale(0.7) rotate(15deg);
+}
+
+.peacock-feather-4 {
   top: 70px;
-  left: 40%;
-  animation: fly-2 35s linear infinite;
+  right: 35%;
+  animation-delay: -6s;
+  opacity: 0.4;
+  transform: scale(0.9) rotate(-5deg);
 }
 
-.bird-3 {
-  top: 30px;
-  left: 70%;
-  animation: fly-3 40s linear infinite;
+/* Footer Styles */
+.footer {
+  position: relative;
+  background-color: hsl(48, 33%, 94%);
+  border-top: 1px solid rgba(163, 125, 40, 0.1);
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  z-index: 10;
 }
 
-@keyframes fly-1 {
-  0% {
-    transform: translateX(-100px) translateY(10px) scale(0.8);
-  }
-  100% {
-    transform: translateX(calc(100vw + 100px)) translateY(-20px) scale(0.8);
-  }
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-@keyframes fly-2 {
-  0% {
-    transform: translateX(-200px) translateY(20px) scale(0.9);
-  }
-  100% {
-    transform: translateX(calc(100vw + 200px)) translateY(-40px) scale(0.9);
-  }
+.footer-logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: hsl(168, 76%, 25%);
+  margin-bottom: 0.5rem;
 }
 
-@keyframes fly-3 {
-  0% {
-    transform: translateX(-150px) translateY(-10px) scale(0.7);
-  }
-  100% {
-    transform: translateX(calc(100vw + 150px)) translateY(30px) scale(0.7);
-  }
+.footer-credits {
+  color: hsl(168, 25%, 35%);
+  margin-bottom: 1rem;
+}
+
+.footer-copyright {
+  color: hsl(168, 20%, 45%);
+  font-size: 0.8rem;
+}
+
+.footer-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, 
+    rgba(255, 215, 0, 0.1), 
+    rgba(1, 137, 112, 0.2), 
+    rgba(255, 215, 0, 0.1));
 }
 
 /* Peacock feather design for sidebar */

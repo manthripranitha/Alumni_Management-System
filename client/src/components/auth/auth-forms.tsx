@@ -19,7 +19,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 // Registration Form Schema
 const currentYear = new Date().getFullYear();
-const graduationYears = Array.from({ length: 20 }, (_, i) => currentYear - i);
+// Create an array from current year to 2040, plus past 20 years for alumni
+const futureYears = Array.from({ length: 2040 - currentYear + 1 }, (_, i) => currentYear + i);
+const pastYears = Array.from({ length: 20 }, (_, i) => currentYear - i - 1);
+const graduationYears = [currentYear, ...futureYears, ...pastYears].sort((a, b) => a - b);
 
 const registrationSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),

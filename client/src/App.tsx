@@ -25,11 +25,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
 import { CloudsAndBirds } from "./components/animations/CloudsAndBirds";
 import { PeacockFeather } from "./components/animations/PeacockFeather";
+import { Footer } from "@/components/ui/footer";
 
 // Wraps the application with decorative elements and theme
 function ThemeWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-background min-h-screen">
+    <div className="app-background min-h-screen flex flex-col">
       {/* Only show clouds and decorations on the homepage */}
       <Route path="/">
         {(params) => 
@@ -46,7 +47,11 @@ function ThemeWrapper({ children }: { children: React.ReactNode }) {
         }
       </Route>
       
-      {children}
+      <div className="flex-grow">
+        {children}
+      </div>
+      
+      <Footer />
     </div>
   );
 }
