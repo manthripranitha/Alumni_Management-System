@@ -93,7 +93,14 @@ export default function AlumniDirectory() {
                 </div>
               </div>
               <div className="mt-4 flex justify-end">
-                <Button variant="outline" size="sm" onClick={() => window.location.href = `/messages?user=${alumnus.id}`}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    window.history.pushState({}, '', `/messages?user=${alumnus.id}`);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                >
                   <Mail className="h-4 w-4 mr-2" />
                   Message
                 </Button>
