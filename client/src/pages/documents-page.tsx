@@ -225,13 +225,13 @@ export default function DocumentsPage() {
         documentType: values.documentType,
         description: values.description || null,
       };
-      
+
       // Only include file data if it was changed
       if (fileBase64) {
         updateData.fileUrl = values.fileUrl;
         updateData.fileType = values.fileType;
       }
-      
+
       updateMutation.mutate({ 
         id: editingDocument.id, 
         data: updateData 
@@ -418,7 +418,7 @@ export default function DocumentsPage() {
           <TabsTrigger value="marksheet">Marksheets</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
-        
+
         {["all", "resume", "certificate", "marksheet", "other"].map((tabValue) => (
           <TabsContent key={tabValue} value={tabValue} className="mt-6">
             {!documents || documents.length === 0 ? (
@@ -470,12 +470,14 @@ export default function DocumentsPage() {
                       <Separator />
                       <CardFooter className="p-3 flex justify-between">
                         <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => window.open(document.fileUrl)}
+                            asChild
                           >
-                            <DownloadCloud className="h-4 w-4" />
+                            <a href={document.fileUrl} download target="_blank" rel="noopener noreferrer">
+                              <DownloadCloud className="h-4 w-4" />
+                            </a>
                           </Button>
                           <Button 
                             variant="outline" 

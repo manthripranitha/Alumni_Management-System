@@ -58,17 +58,17 @@ export default function AdminDocumentsPage() {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [feedback, setFeedback] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Fetch all documents
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
-  
+
   // Fetch all users
   const { data: users } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
-  
+
   // Approve document mutation
   const approveMutation = useMutation({
     mutationFn: async ({ id, feedback }: { id: number; feedback?: string }) => {
@@ -97,7 +97,7 @@ export default function AdminDocumentsPage() {
       });
     },
   });
-  
+
   // Reject document mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ id, feedback }: { id: number; feedback: string }) => {
@@ -126,7 +126,7 @@ export default function AdminDocumentsPage() {
       });
     },
   });
-  
+
   // Delete document mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -147,18 +147,18 @@ export default function AdminDocumentsPage() {
       });
     },
   });
-  
+
   // Open feedback dialog
   const openFeedbackDialog = (document: Document, action: 'approve' | 'reject') => {
     setSelectedDocument(document);
     setFeedbackOpen(true);
     setFeedback(document.adminFeedback || "");
   };
-  
+
   // Submit feedback
   const submitFeedback = (action: 'approve' | 'reject') => {
     if (!selectedDocument) return;
-    
+
     if (action === 'approve') {
       approveMutation.mutate({
         id: selectedDocument.id,
@@ -173,14 +173,14 @@ export default function AdminDocumentsPage() {
         });
         return;
       }
-      
+
       rejectMutation.mutate({
         id: selectedDocument.id,
         feedback: feedback,
       });
     }
   };
-  
+
   // Get document icon based on file type
   const getDocumentIcon = (fileType: string) => {
     if (fileType.includes("pdf")) {
@@ -191,7 +191,7 @@ export default function AdminDocumentsPage() {
       return <File className="h-4 w-4 text-gray-500" />;
     }
   };
-  
+
   // Get badge color based on document status
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -203,19 +203,19 @@ export default function AdminDocumentsPage() {
         return <Badge variant="outline">Pending</Badge>;
     }
   };
-  
+
   // Get user name from ID
   const getUserName = (userId: number) => {
     const user = users?.find(u => u.id === userId);
     return user ? `${user.firstName} ${user.lastName}` : `User #${userId}`;
   };
-  
+
   // Filter documents by search query
   const filteredDocuments = documents?.filter(doc => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const userName = getUserName(doc.userId).toLowerCase();
-    
+
     return (
       doc.title.toLowerCase().includes(query) ||
       doc.documentType.toLowerCase().includes(query) ||
@@ -223,12 +223,12 @@ export default function AdminDocumentsPage() {
       (doc.description && doc.description.toLowerCase().includes(query))
     );
   });
-  
+
   // Group documents by status for tab display
   const pendingDocuments = filteredDocuments?.filter(doc => doc.status === "pending") || [];
   const approvedDocuments = filteredDocuments?.filter(doc => doc.status === "approved") || [];
   const rejectedDocuments = filteredDocuments?.filter(doc => doc.status === "rejected") || [];
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -236,7 +236,7 @@ export default function AdminDocumentsPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -250,7 +250,7 @@ export default function AdminDocumentsPage() {
           />
         </div>
       </div>
-      
+
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all">
@@ -270,7 +270,7 @@ export default function AdminDocumentsPage() {
             {rejectedDocuments && <Badge variant="outline" className="ml-2">{rejectedDocuments.length}</Badge>}
           </TabsTrigger>
         </TabsList>
-        
+
         {['all', 'pending', 'approved', 'rejected'].map((tab) => (
           <TabsContent key={tab} value={tab} className="mt-6">
             {!filteredDocuments || filteredDocuments.length === 0 ? (
@@ -325,11 +325,13 @@ export default function AdminDocumentsPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(document.fileUrl)}
+                                asChild
                               >
-                                <DownloadCloud className="h-4 w-4" />
+                                <a href={document.fileUrl} download target="_blank" rel="noopener noreferrer">
+                                  <DownloadCloud className="h-4 w-4" />
+                                </a>
                               </Button>
-                              
+
                               {document.status === "pending" && (
                                 <>
                                   <Button
@@ -350,7 +352,7 @@ export default function AdminDocumentsPage() {
                                   </Button>
                                 </>
                               )}
-                              
+
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="outline" size="sm" className="text-destructive">
@@ -387,7 +389,7 @@ export default function AdminDocumentsPage() {
           </TabsContent>
         ))}
       </Tabs>
-      
+
       {/* Document Feedback Dialog */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent className="sm:max-w-[525px]">
@@ -399,7 +401,7 @@ export default function AdminDocumentsPage() {
                 "Update feedback for this document."}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             {selectedDocument && (
               <Card>
@@ -422,16 +424,18 @@ export default function AdminDocumentsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(selectedDocument.fileUrl)}
+                    asChild
                     className="w-full"
                   >
-                    <DownloadCloud className="mr-2 h-4 w-4" />
-                    View Document
+                    <a href={selectedDocument.fileUrl} download target="_blank" rel="noopener noreferrer">
+                      <DownloadCloud className="mr-2 h-4 w-4" />
+                      View Document
+                    </a>
                   </Button>
                 </CardFooter>
               </Card>
             )}
-            
+
             <div className="space-y-2">
               <label htmlFor="feedback" className="text-sm font-medium">
                 Feedback
@@ -445,7 +449,7 @@ export default function AdminDocumentsPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter className="flex justify-between">
             <div className="flex gap-2">
               <Button
