@@ -139,6 +139,57 @@ export class MemStorage implements IStorage {
       position: "System Administrator",
       bio: null
     });
+    
+    // Create a default alumni user
+    this.createUser({
+      username: "alumni",
+      password: "alumni123", // This will be hashed in auth.ts
+      email: "alumni@example.com",
+      firstName: "Alumni",
+      lastName: "User",
+      isAdmin: false,
+      graduationYear: 2020,
+      degree: "B.Tech",
+      phone: "+91 98765 43210",
+      address: "Hyderabad, India",
+      company: "Tech Company",
+      position: "Software Engineer",
+      bio: "Graduated from Vignan University in 2020"
+    });
+    
+    // Create a few sample events
+    const twoWeeksFromNow = new Date();
+    twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+    
+    const oneWeekFromNow = new Date();
+    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+    
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    
+    this.createEvent({
+      title: "Annual Alumni Meet 2025",
+      description: "Join us for the annual alumni gathering to reconnect with old friends and network with fellow alumni.",
+      date: twoWeeksFromNow,
+      location: "Vignan University Campus, Guntur",
+      createdBy: 1
+    });
+    
+    this.createEvent({
+      title: "Career Development Workshop",
+      description: "Learn about the latest career opportunities and development paths in various industries.",
+      date: oneWeekFromNow,
+      location: "Online via Zoom",
+      createdBy: 1
+    });
+    
+    this.createEvent({
+      title: "Tech Talk: AI Revolution",
+      description: "A discussion on how AI is transforming industries and what skills you need to stay relevant.",
+      date: twoDaysAgo,
+      location: "Seminar Hall, Vignan University",
+      createdBy: 1
+    });
   }
 
   // User operations
