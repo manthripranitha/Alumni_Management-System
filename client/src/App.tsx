@@ -20,13 +20,14 @@ import AdminDocuments from "@/pages/admin/admin-documents";
 import TestAuth from "@/pages/test-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
+import AlumniDirectory from "./pages/alumni-directory";
 
 function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/test" component={TestAuth} />
-      
+
       {/* Protected routes for all users */}
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/events" component={EventsPage} />
@@ -36,7 +37,8 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/documents" component={DocumentsPage} />
       <ProtectedRoute path="/messages" component={MessagesPage} />
-      
+      <ProtectedRoute path="/alumni" component={AlumniDirectory} />
+
       {/* Admin-only routes */}
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
       <ProtectedRoute path="/admin/events" component={AdminEvents} adminOnly={true} />
@@ -45,7 +47,7 @@ function Router() {
       <ProtectedRoute path="/admin/forum" component={AdminForum} adminOnly={true} />
       <ProtectedRoute path="/admin/users" component={AdminUsers} adminOnly={true} />
       <ProtectedRoute path="/admin/documents" component={AdminDocuments} adminOnly={true} />
-      
+
       <Route component={NotFound} />
     </Switch>
   );
