@@ -117,16 +117,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/events", ensureAdmin, async (req, res) => {
     try {
-      const validatedData = insertEventSchema.parse(req.body);
-      const event = await storage.createEvent({
-        ...validatedData,
-        createdBy: req.user.id,
-      });
-      res.status(201).json(event);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      console.log("Received event creation request with body:", req.body);
+      
+      // Check if the request body has all required fields
+      if (!req.body.title || !req.body.description || !req.body.date || !req.body.location) {
+        console.log("Missing required fields in event creation request");
+        return res.status(400).json({ 
+          message: "Missing required fields",
+          missing: {
+            title: !req.body.title,
+            description: !req.body.description,
+            date: !req.body.date,
+            location: !req.body.location
+          }
+        });
       }
+      
+      // Try to validate the data
+      try {
+        const validatedData = insertEventSchema.parse(req.body);
+        console.log("Event data validated successfully:", validatedData);
+        
+        // Create the event
+        const event = await storage.createEvent({
+          ...validatedData,
+          createdBy: req.user.id,
+        });
+        
+        console.log("Event created successfully:", event);
+        res.status(201).json(event);
+      } catch (validationError) {
+        console.error("Validation error during event creation:", validationError);
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ message: "Validation error", errors: validationError.errors });
+        }
+        throw validationError; // Re-throw to be caught by outer try-catch
+      }
+    } catch (error) {
+      console.error("Error during event creation:", error);
       res.status(500).json({ message: "Failed to create event" });
     }
   });

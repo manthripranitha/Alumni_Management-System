@@ -203,7 +203,17 @@ export function EventForm({ defaultValues, onSubmit, isSubmitting, mode }: Event
             />
             
             <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  // This will close the dialog through the parent component's onOpenChange handler
+                  const closeButton = document.querySelector('[aria-label="Close"]');
+                  if (closeButton instanceof HTMLElement) {
+                    closeButton.click();
+                  }
+                }}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

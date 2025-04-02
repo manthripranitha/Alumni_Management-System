@@ -31,10 +31,14 @@ export default function AdminEvents() {
   // Create event mutation
   const createEventMutation = useMutation({
     mutationFn: async (eventData: InsertEvent) => {
+      console.log("Creating event with data:", eventData);
       const res = await apiRequest("POST", "/api/events", eventData);
-      return await res.json();
+      const responseData = await res.json();
+      console.log("Event creation response:", responseData);
+      return responseData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Event created successfully:", data);
       setIsCreateDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
@@ -43,6 +47,7 @@ export default function AdminEvents() {
       });
     },
     onError: (error: Error) => {
+      console.error("Event creation error:", error);
       toast({
         title: "Failed to create event",
         description: error.message,
@@ -116,16 +121,23 @@ export default function AdminEvents() {
   const handleCreateEvent = (values: any) => {
     const { date, time, ...rest } = values;
     
+    console.log("Event form values:", values);
+    
     // Combine date and time
     const eventDate = new Date(date);
     const [hours, minutes] = time.split(':').map(Number);
     eventDate.setHours(hours, minutes, 0, 0);
     
-    createEventMutation.mutate({
+    // Create the event data
+    const eventData = {
       ...rest,
       date: eventDate,
-      createdBy: 1, // Admin user ID
-    });
+      // Don't set createdBy - it will be set on the server from the authenticated user
+    };
+    
+    console.log("Sending event data to API:", eventData);
+    
+    createEventMutation.mutate(eventData);
   };
   
   // Handle event edit
