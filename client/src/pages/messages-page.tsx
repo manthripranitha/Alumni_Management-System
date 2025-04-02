@@ -40,6 +40,8 @@ export default function MessagesPage() {
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+const [yearFilter, setYearFilter] = useState<string>("");
+const [departmentFilter, setDepartmentFilter] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -196,12 +198,17 @@ export default function MessagesPage() {
     const query = searchQuery.toLowerCase();
     const partner = partnerData.partner;
     
-    return (
+    const matchesSearch = !query || (
       partner.firstName.toLowerCase().includes(query) ||
       partner.lastName.toLowerCase().includes(query) ||
       partner.email.toLowerCase().includes(query) ||
       (partner.username && partner.username.toLowerCase().includes(query))
     );
+
+    const matchesYear = !yearFilter || partner.graduationYear?.toString() === yearFilter;
+    const matchesDepartment = !departmentFilter || partner.branch?.toLowerCase().includes(departmentFilter.toLowerCase());
+
+    return matchesSearch && matchesYear && matchesDepartment;
   });
 
   // Format message timestamp
@@ -234,12 +241,29 @@ export default function MessagesPage() {
         <Card className="md:col-span-1 overflow-hidden flex flex-col">
           <CardHeader className="px-4 py-3 space-y-2">
             <CardTitle className="text-xl">Conversations</CardTitle>
-            <Input
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
+            <div className="space-y-2">
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Graduation Year"
+                  type="number"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  className="w-1/2"
+                />
+                <Input
+                  placeholder="Department"
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="w-1/2"
+                />
+              </div>
+            </div>
           </CardHeader>
           <Separator />
           <CardContent className="p-0 flex-grow">
